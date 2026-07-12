@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NineEyes — Nothing Moves Unseen</title>
+<meta name="description" content="NineEyes is a cross-platform agent management tool that binds every AI agent to its human owner, giving enterprises instant visibility, trust, and one click revocation.">
+<style>
+  :root{
+    --bg:#060E1E;
+    --panel:#0B1728;
+    --card:#0F1F38;
+    --btn:#C8D6E5;
+    --accent:#2A5298;
+    --success:#2ECC71;
+    --warning:#F39C12;
+    --danger:#E74C3C;
+    --text:#E7EEF6;
+    --text-dim:#93A5BD;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI", system-ui, -apple-system, sans-serif;
+    line-height:1.5;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
+
+  header{
+    position:sticky;top:0;z-index:10;
+    background:rgba(6,14,30,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(200,214,229,0.08);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:0.5px;}
+  .brand img{height:28px;width:auto;display:block;background:#fff;border-radius:6px;padding:3px;}
+  nav.links a{margin-left:28px;text-decoration:none;color:var(--text-dim);font-size:14px;transition:color .15s;}
+  nav.links a:hover{color:var(--text);}
+
+  .hero{
+    text-align:center;
+    padding:96px 24px 64px;
+    background:radial-gradient(circle at 50% -10%, rgba(42,82,152,0.35), transparent 60%);
+  }
+  .hero .logo-badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    background:#fff;border-radius:24px;padding:18px 28px;margin-bottom:32px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.35);
+  }
+  .hero .logo-badge img{height:64px;width:auto;display:block;}
+  .hero h1{
+    font-size:clamp(32px,5vw,52px);
+    margin:0 0 16px;
+    letter-spacing:-0.5px;
+  }
+  .hero .tagline{
+    color:var(--accent);
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-bottom:20px;
+  }
+  .hero p.lede{
+    max-width:640px;margin:0 auto 36px;
+    color:var(--text-dim);
+    font-size:18px;
+  }
+  .cta-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+  .btn{
+    display:inline-block;padding:14px 28px;border-radius:8px;
+    font-weight:600;font-size:15px;text-decoration:none;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .btn-primary{background:var(--btn);color:var(--bg);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,214,229,0.25);}
+  .btn-secondary{background:transparent;color:var(--text);border:1px solid rgba(200,214,229,0.3);}
+  .btn-secondary:hover{border-color:var(--btn);}
+
+  section{padding:72px 24px;}
+  .section-title{text-align:center;margin-bottom:12px;font-size:clamp(24px,3vw,34px);}
+  .section-sub{text-align:center;color:var(--text-dim);max-width:600px;margin:0 auto 48px;}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;}
+  .pillar{
+    background:var(--card);
+    border:1px solid rgba(200,214,229,0.08);
+    border-radius:14px;
+    padding:28px;
+  }
+  .pillar .icon{
+    width:40px;height:40px;border-radius:10px;
+    background:var(--accent);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;margin-bottom:16px;
+  }
+  .pillar h3{margin:0 0 10px;font-size:18px;}
+  .pillar p{margin:0;color:var(--text-dim);font-size:14px;}
+
+  .band{
+    background:var(--panel);
+  }
+  .band .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+  .band h2{font-size:clamp(22px,3vw,30px);margin-top:0;}
+  .band ul{color:var(--text-dim);padding-left:20px;}
+  .band li{margin-bottom:10px;}
+
+  .final-cta{text-align:center;padding:88px 24px;}
+  .final-cta h2{font-size:clamp(26px,4vw,38px);margin-bottom:16px;}
+  .final-cta p{color:var(--text-dim);margin-bottom:32px;}
+
+  footer{
+    border-top:1px solid rgba(200,214,229,0.08);
+    padding:32px 24px;text-align:center;color:var(--text-dim);font-size:13px;
+  }
+
+  @media (max-width:720px){
+    .band .grid-2{grid-template-columns:1fr;}
+    nav.links{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="brand">
+      <img src="assets/logo.png" alt="NineEyes logo">
+      <span>NINEEYES</span>
+    </div>
+    <nav class="links">
+      <a href="#how">How it works</a>
+      <a href="#pillars">Platform</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="logo-badge"><img src="assets/logo.png" alt="NineEyes"></div>
+    <div class="tagline">Nothing moves unseen</div>
+    <h1>Agent management for a world<br>full of AI agents</h1>
+    <p class="lede">
+      NineEyes is a cross-platform agent management tool that binds every AI agent to its human owner,
+      giving enterprises instant visibility, trust, and one click revocation across any system, cloud, or provider.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#contact">Request a demo</a>
+      <a class="btn btn-secondary" href="#how">See how it works</a>
+    </div>
+  </div>
+</section>
+
+<section id="pillars">
+  <div class="wrap">
+    <h2 class="section-title">Five pillars, one platform</h2>
+    <p class="section-sub">Every automated identity, owned, defined, watched, and provable, in a single place.</p>
+    <div class="grid">
+      <div class="pillar">
+        <div class="icon">1</div>
+        <h3>Own</h3>
+        <p>Every agent is bound to a human owner. Offboard the human, and every agent they created goes with them, instantly.</p>
+      </div>
+      <div class="pillar">
+        <div class="icon">2</div>
+        <h3>Define</h3>
+        <p>Describe access policy in plain English. NineEyes turns it into a structured, enforced rule set, no config files required.</p>
+      </div>
+      <div class="pillar">
+        <div class="icon">3</div>
+        <h3>Watch</h3>
+        <p>Behavioural baselines flag anomalies, scope escalation, odd hours, new locations, before they become incidents.</p>
+      </div>
+      <div class="pillar">
+        <div class="icon">4</div>
+        <h3>Respond</h3>
+        <p>Quarantine or revoke any agent, or every agent tied to a person, in a single action, no manual cleanup across systems.</p>
+      </div>
+      <div class="pillar">
+        <div class="icon">5</div>
+        <h3>Prove</h3>
+        <p>Every credential, policy change, and alert is logged against the human who authorised it, ready for audit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap grid-2">
+    <div>
+      <h2>Built for a world where agents outnumber employees</h2>
+      <ul>
+        <li>Works across any identity provider, cloud, or platform, no vendor lock-in.</li>
+        <li>Onboard an agent in minutes through a guided setup, no scripting required.</li>
+        <li>One dashboard for every bot, service account, API client, and AI agent in your org.</li>
+        <li>Instant, org-wide revocation the moment a person or agent needs to be cut off.</li>
+      </ul>
+    </div>
+    <div class="pillar">
+      <h3 style="margin-bottom:16px;">Why teams choose NineEyes</h3>
+      <p style="margin-bottom:12px;">Most tools track agents after the fact. NineEyes ties ownership in from the start, so every action an agent takes traces back to a real person, automatically.</p>
+      <p>That means faster audits, faster incident response, and no more guessing who left an orphaned bot running in production.</p>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta" id="contact">
+  <div class="wrap">
+    <h2>See NineEyes on your own agents</h2>
+    <p>Bring your identity provider. We'll show you ownership, policy, and revocation working end to end.</p>
+    <a class="btn btn-primary" href="mailto:snir.karat@igentify.com">Get in touch</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    &copy; 2026 NineEyes. Nothing moves unseen.
+  </div>
+</footer>
+
+</body>
+</html>
