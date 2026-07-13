@@ -1,0 +1,3401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NineEyes | NHI Platform</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <style>
+    :root {
+      --bg:              #060E1E;
+      --bg-panel:        #0B1728;
+      --bg-card:         #0F1F38;
+      --bg-input:        #0D1B30;
+      --border:          #1A3356;
+      --border-hi:       #2A5298;
+
+      --col-human:       #F5A623;
+      --col-human-glow:  rgba(245,166,35,0.35);
+      --col-human-dim:   rgba(245,166,35,0.12);
+      --col-master:      #00D9B8;
+      --col-master-glow: rgba(0,217,184,0.28);
+      --col-master-dim:  rgba(0,217,184,0.1);
+      --col-agent:       #4A9FD4;
+      --col-agent-glow:  rgba(74,159,212,0.25);
+      --col-agent-dim:   rgba(74,159,212,0.1);
+
+      --col-system:      #9B59B6;
+      --col-system-glow: rgba(155,89,182,0.30);
+      --col-system-dim:  rgba(155,89,182,0.10);
+
+      --text:            #E8EDF5;
+      --text-muted:      #6B85A8;
+      --text-label:      #94AACB;
+      --success:         #2ECC71;
+      --warning:         #F39C12;
+      --danger:          #E74C3C;
+
+      --radius:          10px;
+      --radius-sm:       6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100vh; max-height: 100vh; overflow: hidden; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── TOP NAV ──────────────────────────────────────────── */
+    .topbar {
+      height: 58px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 24px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .logo img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      filter: brightness(0.9);
+    }
+
+    .logo-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: #C8D6E5;
+      letter-spacing: 0.4px;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 2px;
+      flex: 1;
+    }
+
+    .nav-tab {
+      padding: 6px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .nav-tab:hover { color: var(--text); background: var(--bg-card); }
+
+    .nav-tab.active {
+      color: #C8D6E5;
+      background: var(--bg-card);
+      border-color: var(--border);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-left: auto;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    .status-label { font-size: 11px; color: var(--text-muted); }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--border-hi);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #C8D6E5;
+      border: 1px solid var(--border-hi);
+    }
+
+    /* ── LAYOUT ───────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── SIDEBAR ──────────────────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-section { padding: 20px 0 8px; }
+
+    .sidebar-label {
+      font-size: 10px;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 20px 10px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .sidebar-item:hover { background: var(--bg-card); color: var(--text); }
+
+    .sidebar-item.active {
+      background: var(--bg-card);
+      border-left-color: var(--col-master);
+      color: var(--text);
+    }
+
+    .sidebar-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .sidebar-badge {
+      margin-left: auto;
+      font-size: 10px;
+      background: var(--border-hi);
+      color: #7EB3FF;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .sidebar-badge.danger { background: rgba(231,76,60,0.2); color: var(--danger); }
+
+    .sidebar-divider { height: 1px; background: var(--border); margin: 8px 16px; }
+
+    .legend {
+      padding: 16px 20px;
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+    }
+
+    .legend-title {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-label);
+    }
+
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── MAIN ─────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .view-header {
+      padding: 16px 28px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .view-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .view-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .view-actions { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+
+    .btn-teal {
+      background: rgba(0,217,184,0.12);
+      color: var(--col-master);
+      border: 1px solid rgba(0,217,184,0.3);
+    }
+
+    .btn-teal:hover { background: rgba(0,217,184,0.2); }
+
+    .toggle-pill {
+      display: flex;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .toggle-opt {
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .toggle-opt.active {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border-hi);
+    }
+
+    /* ── PAGES ────────────────────────────────────────────── */
+    .page { display: none; flex: 1; overflow: hidden; min-height: 0; }
+    .page.active { display: flex; flex-direction: column; min-height: 0; }
+
+    /* ── STATS BAR ─────────────────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .stat-cell {
+      flex: 1;
+      padding: 12px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-cell:last-child { border-right: none; }
+    .stat-val { font-size: 22px; font-weight: 700; }
+    .stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+    /* ── ALL IDENTITIES ───────────────────────────────────── */
+    .identities-grid {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: start;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .identity-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .identity-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--col-human), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .identity-card:hover {
+      border-color: var(--col-human);
+      box-shadow: 0 0 20px var(--col-human-glow);
+      transform: translateY(-2px);
+    }
+
+    .identity-card:hover::before { opacity: 1; }
+
+    .ic-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .ic-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--col-human-dim);
+      border: 2px solid var(--col-human);
+      box-shadow: 0 0 12px var(--col-human-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--col-human);
+      flex-shrink: 0;
+    }
+
+    .ic-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .ic-email { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .ic-stats { display: flex; gap: 10px; }
+
+    .ic-stat {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .ic-stat-val { font-size: 20px; font-weight: 700; }
+    .ic-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+    .ic-footer {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ic-canonical { font-size: 10px; color: var(--text-muted); font-family: 'Cascadia Code', monospace; }
+
+    /* ── BREADCRUMB ───────────────────────────────────────── */
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .breadcrumb-link { color: var(--text-muted); cursor: pointer; }
+    .breadcrumb-link:hover { color: var(--text); }
+    .breadcrumb-sep { color: var(--text-muted); }
+    .breadcrumb-current { color: var(--col-human); font-weight: 600; }
+
+    /* ── TREE PAGE ────────────────────────────────────────── */
+    .tree-page { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+
+    .tree-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 0;
+      position: relative;
+      background: radial-gradient(ellipse at center, rgba(42,82,152,0.05) 0%, transparent 70%);
+    }
+
+    #tree-svg { width: 100%; height: 100%; display: block; overflow: hidden; }
+
+    .tree-link { fill: none; stroke-width: 1.5; opacity: 0.5; }
+
+    /* ── DETAIL PANEL ─────────────────────────────────────── */
+    .detail-panel {
+      width: 280px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .dp-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+      gap: 10px;
+    }
+
+    .dp-empty-icon { font-size: 32px; opacity: 0.3; }
+
+    .dp-type-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .dp-type-human  { background: var(--col-human-dim);  color: var(--col-human);  border: 1px solid var(--col-human); }
+    .dp-type-master { background: var(--col-master-dim); color: var(--col-master); border: 1px solid var(--col-master); }
+    .dp-type-agent  { background: var(--col-agent-dim);  color: var(--col-agent);  border: 1px solid var(--col-agent); }
+
+    .dp-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .dp-sub  { font-size: 11px; color: var(--text-muted); }
+
+    .dp-section { margin-bottom: 18px; }
+
+    .dp-section-title {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .dp-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .dp-row:last-child { border-bottom: none; }
+    .dp-row-key { color: var(--text-muted); flex-shrink: 0; margin-right: 8px; }
+    .dp-row-val { color: var(--text); text-align: right; word-break: break-all; max-width: 160px; }
+
+    .dp-mono {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 10px;
+      color: var(--col-master);
+      background: var(--bg-input);
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    .dp-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+
+    .dp-btn {
+      width: 100%;
+      padding: 9px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .dp-btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+    .dp-btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+    .dp-btn-warn  { background: rgba(231,76,60,0.1); color: var(--danger); border: 1px solid rgba(231,76,60,0.3); }
+    .dp-btn-warn:hover { background: rgba(231,76,60,0.2); }
+    .dp-btn-teal  { background: rgba(0,217,184,0.12); color: var(--col-master); border: 1px solid rgba(0,217,184,0.3); }
+    .dp-btn-teal:hover { background: rgba(0,217,184,0.22); }
+
+    /* ── FLAT LIST ────────────────────────────────────────── */
+    .flat-list { flex: 1; overflow-y: auto; padding: 20px 28px; }
+
+    .flat-master-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+    }
+
+    .flat-master-row:hover { border-color: var(--col-master); }
+
+    .flat-agent-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: all 0.15s;
+    }
+
+    .flat-agent-row:hover { border-color: var(--col-agent); }
+
+    /* ── HUD GRID BACKGROUND ───────────────────────────────── */
+    .main {
+      position: relative;
+    }
+    .main::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,217,184,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,217,184,0.035) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page { z-index: 1; }
+
+    /* ── ANIMATIONS ─────────────────────────────────────────── */
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50%       { opacity: 0.3; transform: scale(1.08); }
+    }
+    @keyframes pulse-dot {
+      0%, 100% { box-shadow: 0 0 5px var(--success); }
+      50%       { box-shadow: 0 0 14px var(--success), 0 0 28px var(--success); }
+    }
+    @keyframes hud-scan {
+      0%   { transform: translateY(0);   opacity: 0; }
+      5%   { opacity: 0.6; }
+      95%  { opacity: 0.6; }
+      100% { transform: translateY(100%); opacity: 0; }
+    }
+    @keyframes neon-flicker {
+      0%,97%,100% { opacity: 1; }
+      98%          { opacity: 0.7; }
+    }
+    @keyframes border-flow {
+      0%   { background-position: 0 0,   100% 0,   100% 100%, 0 100%; }
+      100% { background-position: 100% 0, 100% 100%, 0 100%, 0 0;    }
+    }
+    @keyframes dash-rotate {
+      to { stroke-dashoffset: -20; }
+    }
+
+    /* ── NEON GLOW ON STATS ─────────────────────────────────── */
+    .stat-val {
+      text-shadow: 0 0 14px currentColor;
+      animation: neon-flicker 8s infinite;
+    }
+    .ic-stat-val { text-shadow: 0 0 10px currentColor; }
+
+    /* ── STATUS DOT PULSE ───────────────────────────────────── */
+    .status-dot { animation: pulse-dot 2.4s ease-in-out infinite; }
+
+    /* ── HUD CORNER BRACKETS ON IDENTITY CARDS ──────────────── */
+    .identity-card {
+      overflow: visible !important;
+    }
+    .identity-card::after {
+      content: '';
+      position: absolute;
+      bottom: 10px; right: 10px;
+      width: 14px; height: 14px;
+      border-right: 2px solid var(--col-human);
+      border-bottom: 2px solid var(--col-human);
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    /* ── TOPBAR ENHANCEMENT ─────────────────────────────────── */
+    .topbar {
+      background: linear-gradient(90deg, #040C1A, var(--bg-panel) 40%, #040C1A);
+      border-bottom: 1px solid rgba(0,217,184,0.2);
+    }
+    .logo-name { text-shadow: 0 0 14px rgba(0,217,184,0.5); }
+
+    /* ── STATS BAR ENHANCEMENT ──────────────────────────────── */
+    .stats-bar {
+      background: linear-gradient(90deg, transparent, rgba(0,217,184,0.03), transparent);
+      border-top: 1px solid rgba(0,217,184,0.1);
+      border-bottom: 1px solid rgba(0,217,184,0.1);
+    }
+    .stat-cell {
+      position: relative;
+    }
+    .stat-cell::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 20%; bottom: 20%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(0,217,184,0.2), transparent);
+    }
+    .stat-cell:last-child::after { display: none; }
+
+    /* ── D3 LINK LINES ──────────────────────────────────────── */
+    .tree-link {
+      fill: none;
+      stroke-width: 1.5;
+      stroke-opacity: 0.6;
+      filter: drop-shadow(0 0 3px currentColor);
+    }
+
+    /* ── FLAT LIST ROWS ─────────────────────────────────────── */
+    .flat-master-row, .flat-agent-row {
+      transition: all 0.15s;
+    }
+    .flat-master-row:hover { box-shadow: 0 0 12px rgba(0,217,184,0.15); }
+    .flat-agent-row:hover  { box-shadow: 0 0 8px rgba(74,159,212,0.15); }
+
+    /* ── TABLE ENHANCEMENT ──────────────────────────────────── */
+    .data-table th { text-shadow: 0 0 8px rgba(0,217,184,0.3); }
+    .data-table tr:hover td { box-shadow: inset 0 0 30px rgba(0,217,184,0.04); }
+
+    /* ── SIDEBAR ENHANCEMENT ────────────────────────────────── */
+    .sidebar {
+      background: linear-gradient(to bottom, #040C1A, var(--bg-panel));
+      border-right: 1px solid rgba(0,217,184,0.15);
+    }
+    .sidebar-item.active {
+      background: linear-gradient(90deg, rgba(0,217,184,0.06), transparent);
+      border-left-color: var(--col-master);
+      text-shadow: 0 0 8px rgba(0,217,184,0.4);
+    }
+
+    /* ── SCROLLBAR ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,217,184,0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,217,184,0.4); }
+
+    /* ── SHARED TABLE ──────────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      text-align: left; padding: 10px 14px;
+      font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--text-muted); border-bottom: 1px solid var(--border);
+      font-weight: 600; white-space: nowrap;
+    }
+    .data-table td {
+      padding: 11px 14px; font-size: 12px; color: var(--text);
+      border-bottom: 1px solid rgba(26,51,86,0.5); vertical-align: middle;
+    }
+    .data-table tr:hover td { background: rgba(15,31,56,0.6); cursor: pointer; }
+    .data-table tr.selected td { background: rgba(0,217,184,0.06); }
+
+    /* ── SEVERITY BADGES ───────────────────────────────────── */
+    .sev { display:inline-block; padding:2px 9px; border-radius:10px; font-size:10px; font-weight:700; letter-spacing:0.6px; }
+    .sev-critical { background:rgba(231,76,60,0.18); color:#E74C3C; border:1px solid rgba(231,76,60,0.35); }
+    .sev-high     { background:rgba(243,156,18,0.18); color:#F39C12; border:1px solid rgba(243,156,18,0.35); }
+    .sev-medium   { background:rgba(74,159,212,0.18); color:#4A9FD4; border:1px solid rgba(74,159,212,0.35); }
+    .sev-low      { background:rgba(46,204,113,0.15); color:#2ECC71; border:1px solid rgba(46,204,113,0.3); }
+
+    /* ── FILTER BAR ────────────────────────────────────────── */
+    .filter-bar {
+      padding: 14px 28px 0;
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    }
+    .filter-select {
+      background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text-label); font-size: 12px; padding: 6px 12px;
+      border-radius: var(--radius-sm); cursor: pointer; outline: none;
+    }
+    .filter-select:focus { border-color: var(--border-hi); }
+    .filter-count { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+
+    /* ── AGENTS PAGE ───────────────────────────────────────── */
+    .agents-table-wrap { padding: 16px 28px 28px; overflow-x: auto; }
+
+    .agent-type-pill {
+      display:inline-block; padding:2px 10px; border-radius:10px; font-size:10px;
+      background:var(--col-agent-dim); color:var(--col-agent);
+      border:1px solid rgba(74,159,212,0.3);
+    }
+    .master-chip {
+      display:inline-flex; align-items:center; gap:5px; padding:2px 9px;
+      border-radius:10px; font-size:10px; background:var(--col-master-dim);
+      color:var(--col-master); border:1px solid rgba(0,217,184,0.25);
+    }
+    .human-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:11px; color:var(--col-human);
+    }
+
+    /* ── POLICIES PAGE ─────────────────────────────────────── */
+    .policies-layout {
+      display: flex; flex: 1; overflow: hidden; gap: 0; min-height: 0;
+    }
+    .policy-list-panel {
+      width: 320px; flex-shrink: 0; border-right: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .policy-detail-panel {
+      flex: 1; overflow-y: auto; padding: 28px;
+    }
+    .policy-list-header {
+      padding: 20px 20px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .policy-item {
+      padding: 14px 20px; border-bottom: 1px solid rgba(26,51,86,0.5);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .policy-item:hover { background: var(--bg-card); }
+    .policy-item.active { background: var(--bg-card); border-left: 3px solid var(--col-master); }
+    .policy-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .policy-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    .nl-box {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px;
+    }
+    .nl-box-label { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--col-master); margin-bottom: 8px; }
+    .nl-input {
+      width: 100%; background: transparent; border: none; color: var(--text);
+      font-size: 13px; outline: none; resize: none; font-family: inherit; line-height: 1.5;
+    }
+    .nl-actions { display: flex; justify-content: flex-end; margin-top: 10px; gap: 8px; }
+
+    .spec-section { margin-bottom: 20px; }
+    .spec-title {
+      font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .spec-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid rgba(26,51,86,0.3);
+    }
+    .spec-key { font-size: 12px; color: var(--text-label); }
+    .spec-val { font-size: 12px; color: var(--text); font-family: 'Cascadia Code', monospace; }
+    .locked-badge {
+      font-size: 9px; padding: 1px 7px; border-radius: 8px;
+      background: rgba(243,156,18,0.15); color: var(--warning);
+      border: 1px solid rgba(243,156,18,0.3); margin-left: 8px;
+    }
+
+    /* ── ALERTS PAGE ───────────────────────────────────────── */
+    .alerts-table-wrap { padding: 16px 28px 28px; overflow-x: auto; }
+
+    .alert-action-btn {
+      font-size: 10px; padding: 3px 9px; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--border); background: transparent; color: var(--text-muted);
+      transition: all 0.15s; margin-right: 4px;
+    }
+    .alert-action-btn:hover { color: var(--text); border-color: var(--border-hi); }
+    .alert-action-btn.revoke { border-color: rgba(231,76,60,0.4); color: var(--danger); }
+    .alert-action-btn.revoke:hover { background: rgba(231,76,60,0.1); }
+
+    .rule-chip {
+      font-size: 10px; font-family: 'Cascadia Code', monospace;
+      color: var(--text-muted); background: var(--bg-input);
+      border: 1px solid var(--border); padding: 1px 7px; border-radius: 4px;
+    }
+
+    .ack-row { opacity: 0.45; }
+
+    /* ── OPS DASHBOARD ─────────────────────────────────────── */
+    .ops-dashboard {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .ops-left {
+      flex: 1;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .ops-right {
+      width: 340px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-panel);
+    }
+    .ops-panel-header {
+      padding: 11px 20px 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .ops-panel-title {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .identity-status-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 20px;
+      border-bottom: 1px solid rgba(26,51,86,0.5);
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .identity-status-row:hover { background: rgba(15,31,56,0.7); }
+    .isr-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--col-human-dim);
+      border: 1.5px solid var(--col-human);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      color: var(--col-human);
+      flex-shrink: 0;
+    }
+    .isr-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .isr-email { font-size: 10px; color: var(--text-muted); }
+    .isr-stats { display: flex; align-items: center; gap: 18px; }
+    .isr-stat { text-align: center; }
+    .isr-stat-val { font-size: 17px; font-weight: 700; line-height: 1; text-shadow: 0 0 10px currentColor; }
+    .isr-stat-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; }
+    .health-bar-wrap { width: 90px; height: 3px; background: rgba(26,51,86,0.8); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+    .health-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+    .threat-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px;
+      border-bottom: 1px solid rgba(26,51,86,0.4);
+    }
+    .threat-label { font-size: 10px; font-weight: 700; width: 68px; flex-shrink: 0; letter-spacing: 0.5px; }
+    .threat-bar-outer { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .threat-bar-inner { height: 100%; border-radius: 3px; transition: width 0.4s; }
+    .threat-count { font-size: 14px; font-weight: 700; width: 22px; text-align: right; flex-shrink: 0; }
+    .alert-feed-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 20px;
+      border-bottom: 1px solid rgba(26,51,86,0.4);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .alert-feed-item:hover { background: rgba(15,31,56,0.6); }
+    .alert-feed-sev { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .alert-feed-type { font-size: 12px; font-weight: 600; color: var(--text); }
+    .alert-feed-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .alert-feed-ts { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+    .sidebar-chart-section {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-chart-title {
+      font-size: 9px; letter-spacing: 1.8px; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 10px; font-weight: 600;
+    }
+    .mini-donut-wrap { display: flex; align-items: center; gap: 10px; }
+    .mini-donut-legend { display: flex; flex-direction: column; gap: 5px; }
+    .mini-donut-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-label); }
+    .mini-donut-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── IDENTITY CARD GRID ─────────────────────────────────── */
+    .identity-cards-grid {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+      gap: 14px;
+      align-content: start;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .id-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .id-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+    .id-card.user-card::before  { background: linear-gradient(90deg, var(--col-human), transparent); }
+    .id-card.system-card::before { background: linear-gradient(90deg, var(--col-system), transparent); }
+    .id-card:hover { transform: translateY(-2px); }
+    .id-card.user-card:hover   { border-color: var(--col-human);   box-shadow: 0 0 18px var(--col-human-glow); }
+    .id-card.system-card:hover { border-color: var(--col-system);  box-shadow: 0 0 18px var(--col-system-glow); }
+    .id-card:hover::before { opacity: 1; }
+    .id-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .id-card-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; flex-shrink: 0;
+    }
+    .id-card-avatar.user-av {
+      background: var(--col-human-dim); border: 2px solid var(--col-human);
+      color: var(--col-human); box-shadow: 0 0 10px var(--col-human-glow);
+    }
+    .id-card-avatar.system-av {
+      background: var(--col-system-dim); border: 2px solid var(--col-system);
+      color: var(--col-system); box-shadow: 0 0 10px var(--col-system-glow);
+    }
+    .id-card-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .id-card-sub  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .id-type-badge {
+      font-size: 9px; padding: 2px 8px; border-radius: 8px;
+      font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      display: inline-block; margin-top: 4px;
+    }
+    .id-type-badge.user-badge   { background: rgba(245,166,35,0.12); color: var(--col-human);   border: 1px solid rgba(245,166,35,0.3); }
+    .id-type-badge.system-badge { background: rgba(155,89,182,0.12); color: var(--col-system);  border: 1px solid rgba(155,89,182,0.3); }
+    .id-card-stats { display: flex; gap: 8px; }
+    .id-card-stat {
+      flex: 1; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 10px; text-align: center;
+    }
+    .id-card-stat-val { font-size: 18px; font-weight: 700; line-height: 1; }
+    .id-card-stat-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 2px; }
+    .id-card-footer {
+      margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .id-card-cid { font-size: 9px; color: var(--text-muted); font-family: 'Cascadia Code', monospace; }
+
+    /* ── BOUND RING STAT CELL ───────────────────────────────── */
+    .bound-cell {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 8px 14px;
+      width: 340px; flex: 0 0 340px;
+    }
+    .bound-cell .stat-lbl { margin-top: 4px; }
+
+    /* ── IDP PAGE ───────────────────────────────────────────── */
+    .idp-layout {
+      display: flex; flex: 1; overflow: hidden; min-height: 0;
+    }
+    .idp-list-panel {
+      width: 280px; flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .idp-list-header {
+      padding: 12px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .idp-list-title {
+      font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--text-muted); font-weight: 600;
+    }
+    .idp-list-items { overflow-y: auto; flex: 1; }
+    .idp-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(26,51,86,0.5);
+      cursor: pointer; transition: background 0.15s;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .idp-item:hover { background: rgba(15,31,56,0.6); }
+    .idp-item.active { background: rgba(0,217,184,0.06); border-left: 2px solid var(--col-master); }
+    .idp-item-icon {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .idp-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .idp-item-type { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .idp-item-status {
+      margin-left: auto; flex-shrink: 0;
+      font-size: 9px; padding: 2px 7px; border-radius: 6px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .idp-status-ok  { background: rgba(46,204,113,0.12); color: #2ECC71; border: 1px solid rgba(46,204,113,0.25); }
+    .idp-status-err { background: rgba(231,76,60,0.12);  color: #E74C3C; border: 1px solid rgba(231,76,60,0.25); }
+    .idp-right-panel {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .idp-form-wrap {
+      padding: 24px 28px; max-width: 640px;
+    }
+    .idp-form-title {
+      font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    }
+    .idp-form-sub {
+      font-size: 11px; color: var(--text-muted); margin-bottom: 22px;
+    }
+    .idp-field-group {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;
+    }
+    .idp-field-group.full { grid-template-columns: 1fr; }
+    .idp-field { display: flex; flex-direction: column; gap: 5px; }
+    .idp-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--text-muted); font-weight: 600;
+    }
+    .idp-input, .idp-select {
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 11px;
+      color: var(--text); font-size: 12px; outline: none; font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .idp-input:focus, .idp-select:focus { border-color: var(--col-master); }
+    .idp-select option { background: var(--bg-panel); }
+    .idp-input.mono { font-family: 'Cascadia Code', monospace; font-size: 11px; }
+    .idp-btn-row {
+      display: flex; gap: 10px; margin-top: 20px; align-items: center;
+    }
+    .sync-feedback {
+      font-size: 11px; color: var(--col-master);
+      margin-left: 10px; opacity: 0; transition: opacity 0.3s;
+    }
+    .sync-feedback.show { opacity: 1; }
+    .idp-detail-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px; margin-bottom: 18px;
+    }
+    .idp-detail-header {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+    }
+    .idp-detail-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .idp-detail-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .idp-detail-type { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .idp-sync-stats {
+      display: flex; gap: 14px; margin-top: 14px;
+    }
+    .idp-sync-stat {
+      flex: 1; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 14px; text-align: center;
+    }
+    .idp-sync-val { font-size: 20px; font-weight: 700; color: var(--col-master); line-height: 1; }
+    .idp-sync-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; }
+
+    /* ── ISSUE AGENT TOKEN FORM ─────────────────────────────── */
+    .itf-wrap {
+      background: var(--bg-input); border: 1px solid var(--col-master);
+      border-radius: var(--radius); padding: 14px 16px; margin-top: 14px;
+      box-shadow: 0 0 14px rgba(0,217,184,0.08);
+    }
+    .itf-title {
+      font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--col-master); font-weight: 700; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .itf-close {
+      cursor: pointer; color: var(--text-muted); font-size: 13px; line-height: 1;
+    }
+    .itf-close:hover { color: var(--text); }
+    .itf-field { margin-bottom: 10px; }
+    .itf-label {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;
+    }
+    .itf-input, .itf-select {
+      width: 100%; background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 7px 10px;
+      color: var(--text); font-size: 11px; outline: none; font-family: inherit;
+      box-sizing: border-box; transition: border-color 0.15s;
+    }
+    .itf-input:focus, .itf-select:focus { border-color: var(--col-master); }
+    .itf-select option { background: var(--bg-panel); }
+    .itf-scopes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .itf-scope-chip {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 10px; color: var(--text-label); cursor: pointer;
+    }
+    .itf-scope-chip input[type=checkbox] { accent-color: var(--col-master); }
+    .itf-result {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      font-family: 'Cascadia Code', monospace; font-size: 9px;
+      color: var(--col-master); line-height: 1.6; word-break: break-all;
+      margin-top: 10px; position: relative;
+    }
+    .itf-copy-btn {
+      position: absolute; top: 6px; right: 8px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: 4px; padding: 2px 7px; font-size: 9px; color: var(--text-muted);
+      cursor: pointer; font-family: inherit;
+    }
+    .itf-copy-btn:hover { color: var(--col-master); border-color: var(--col-master); }
+  </style>
+</head>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav class="topbar">
+  <a class="logo" href="../">
+    <img src="../assets/hero-visual.gif" alt="9Eyes"/>
+    <div>
+      <div class="logo-name">9Eyes</div>
+      <div class="logo-sub">NHI Platform</div>
+    </div>
+  </a>
+  <div class="topbar-divider"></div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="nt-identities" onclick="switchSection('identities')">Identities</div>
+    <div class="nav-tab"        id="nt-agents"     onclick="switchSection('agents')">Agents</div>
+    <div class="nav-tab"        id="nt-policies"   onclick="switchSection('policies')">Policies</div>
+    <div class="nav-tab"        id="nt-alerts"     onclick="switchSection('alerts')">Alerts</div>
+    <div class="nav-tab"        id="nt-idp"        onclick="switchSection('idp')">IdP</div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-dot"></div>
+    <span class="status-label">Connected</span>
+    <div class="avatar">SK</div>
+  </div>
+</nav>
+
+<!-- ── LAYOUT ── -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Views</div>
+      <div class="sidebar-item active" id="nav-all" onclick="showAllIdentities()">
+        <span class="sidebar-icon">⬡</span>
+        All Identities
+        <span class="sidebar-badge" id="badge-humans">–</span>
+      </div>
+      <div class="sidebar-item" id="nav-detail" style="display:none" onclick="/* breadcrumb */">
+        <span class="sidebar-icon">◎</span>
+        <span id="nav-detail-name">Detail</span>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Platform Summary</div>
+      <div class="sidebar-item" style="cursor:default">
+        <span class="sidebar-icon" style="color:var(--col-human)">●</span>
+        Identities
+        <span class="sidebar-badge" id="sb-humans">–</span>
+      </div>
+      <div class="sidebar-item" style="cursor:default">
+        <span class="sidebar-icon" style="color:var(--col-master)">●</span>
+        Tool Connections
+        <span class="sidebar-badge" id="sb-masters">–</span>
+      </div>
+      <div class="sidebar-item" style="cursor:default">
+        <span class="sidebar-icon" style="color:var(--col-agent)">●</span>
+        Agent Tokens
+        <span class="sidebar-badge" id="sb-agents">–</span>
+      </div>
+      <div class="sidebar-item" style="cursor:default">
+        <span class="sidebar-icon" style="color:var(--danger)">●</span>
+        Active Alerts
+        <span class="sidebar-badge danger" id="sb-alerts">–</span>
+      </div>
+    </div>
+
+    <div class="sidebar-chart-section">
+      <div class="sidebar-chart-title">Alert Breakdown</div>
+      <div class="mini-donut-wrap">
+        <svg id="mini-donut-svg" width="58" height="58" style="flex-shrink:0"></svg>
+        <div class="mini-donut-legend" id="mini-donut-legend"></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-title">Node Legend</div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--col-human);box-shadow:0 0 6px var(--col-human-glow)"></div>
+        Human Identity
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--col-master);box-shadow:0 0 6px var(--col-master-glow)"></div>
+        Master Token (PK_H)
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--col-agent);box-shadow:0 0 6px var(--col-agent-glow)"></div>
+        Agent Token (NHI)
+      </div>
+      <div class="legend-item">
+        <div style="width:10px;height:10px;border-radius:50%;border:1.5px dashed var(--danger);box-shadow:0 0 4px rgba(231,76,60,0.5);flex-shrink:0"></div>
+        Alert / Anomaly
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ── PAGE: ALL IDENTITIES ── -->
+    <div id="pg-all" class="page active">
+      <div class="view-header">
+        <div>
+          <div class="view-title">All Identities</div>
+          <div class="view-subtitle">Click any identity card to explore its full token hierarchy</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-ghost">↻ Refresh</button>
+          <button class="btn btn-teal">+ New Identity</button>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-cell">
+          <div class="stat-val" id="gs-identities" style="color:var(--col-human)">–</div>
+          <div class="stat-lbl">Identities</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="gs-masters" style="color:var(--col-master)">–</div>
+          <div class="stat-lbl">Tool Connections</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="gs-agents" style="color:var(--col-agent)">–</div>
+          <div class="stat-lbl">Agent Tokens</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="gs-alerts" style="color:var(--danger)">–</div>
+          <div class="stat-lbl">Active Alerts</div>
+        </div>
+        <div class="stat-cell bound-cell">
+          <svg id="bound-ring-svg" width="52" height="52" style="overflow:visible">
+            <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(0,217,184,0.12)" stroke-width="5"/>
+            <circle id="bound-ring-arc" cx="26" cy="26" r="20" fill="none"
+              stroke="var(--col-master)" stroke-width="5" stroke-linecap="round"
+              stroke-dasharray="125.66" stroke-dashoffset="0"
+              transform="rotate(-90 26 26)"
+              style="filter:drop-shadow(0 0 5px var(--col-master));transition:stroke-dashoffset 0.6s ease"/>
+            <text x="26" y="23" text-anchor="middle" font-size="11" font-weight="800" fill="#00D9B8" id="bound-ring-pct">100%</text>
+            <text x="26" y="34" text-anchor="middle" font-size="7" fill="#6B85A8" letter-spacing="0.5">BOUND</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="ops-dashboard">
+        <!-- Left: identity card grid -->
+        <div class="ops-left">
+          <div class="ops-panel-header">
+            <span class="ops-panel-title">All Identities</span>
+            <span id="op-identity-count" style="font-size:10px;color:var(--text-muted)"></span>
+          </div>
+          <div class="identity-cards-grid" id="identity-cards-grid"></div>
+        </div>
+        <!-- Right: threat overview + alert feed -->
+        <div class="ops-right">
+          <div class="ops-panel-header">
+            <span class="ops-panel-title">Threat Overview</span>
+          </div>
+          <div id="ops-threat-breakdown"></div>
+          <div class="ops-panel-header" style="margin-top:2px">
+            <span class="ops-panel-title">Active Alerts</span>
+            <span style="font-size:10px;color:var(--col-master);cursor:pointer" onclick="switchSection('alerts')">View All →</span>
+          </div>
+          <div id="ops-alerts-feed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: IDENTITY DETAIL (TREE) ── -->
+    <div id="pg-detail" class="page">
+      <div class="view-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-link" onclick="showAllIdentities()">All Identities</span>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-current" id="bc-name">–</span>
+        </div>
+        <div class="view-actions">
+          <div class="toggle-pill">
+            <div class="toggle-opt active" id="tog-tree" onclick="setTreeMode('tree')">Tree</div>
+            <div class="toggle-opt"        id="tog-flat" onclick="setTreeMode('flat')">Flat List</div>
+          </div>
+          <button class="btn btn-ghost" onclick="showAllIdentities()">← All Identities</button>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-cell">
+          <div class="stat-val" id="ds-masters" style="color:var(--col-master)">–</div>
+          <div class="stat-lbl">Master Tokens</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="ds-agents" style="color:var(--col-agent)">–</div>
+          <div class="stat-lbl">Agent Tokens</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="ds-rotations" style="color:var(--text)">–</div>
+          <div class="stat-lbl">Total Rotations</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="ds-alerts" style="color:var(--danger)">–</div>
+          <div class="stat-lbl">Alerts</div>
+        </div>
+      </div>
+
+      <div class="tree-page" id="tree-page">
+        <!-- Tree area -->
+        <div class="tree-area" id="tree-area">
+          <svg id="tree-svg"></svg>
+        </div>
+
+        <!-- Flat list (hidden by default) -->
+        <div class="flat-list" id="flat-list" style="display:none"></div>
+
+        <!-- Detail panel -->
+        <div class="detail-panel" id="detail-panel">
+          <div class="dp-empty" id="dp-empty">
+            <div class="dp-empty-icon">⬡</div>
+            <div>Click any node<br/>to inspect details</div>
+          </div>
+          <div id="dp-content" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAGE: AGENTS
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="pg-agents" class="page">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Agents</div>
+          <div class="view-subtitle">All agent tokens across every identity and tool connection</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-ghost">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-cell">
+          <div class="stat-val" id="ag-total" style="color:var(--col-agent)">–</div>
+          <div class="stat-lbl">Agent Tokens</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="ag-alerted" style="color:var(--danger)">–</div>
+          <div class="stat-lbl">With Alerts</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="ag-rotations" style="color:var(--text)">–</div>
+          <div class="stat-lbl">Total Rotations</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="ag-types" style="color:var(--col-master)">–</div>
+          <div class="stat-lbl">Agent Types</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select class="filter-select" id="ag-filter-human" onchange="renderAgentsTable()">
+          <option value="">All Identities</option>
+        </select>
+        <select class="filter-select" id="ag-filter-type" onchange="renderAgentsTable()">
+          <option value="">All Types</option>
+        </select>
+        <select class="filter-select" id="ag-filter-alert" onchange="renderAgentsTable()">
+          <option value="">All Statuses</option>
+          <option value="alerted">Has Alerts</option>
+          <option value="clean">Clean</option>
+        </select>
+        <span class="filter-count" id="ag-count"></span>
+      </div>
+
+      <div class="agents-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Type</th>
+              <th>Tool Connection</th>
+              <th>Identity</th>
+              <th>PK_NHI</th>
+              <th>Rotations</th>
+              <th>Alerts</th>
+            </tr>
+          </thead>
+          <tbody id="agents-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAGE: POLICIES
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="pg-policies" class="page">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Policies</div>
+          <div class="view-subtitle">Manage access, rotation, and network policies for agent tokens</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-teal" onclick="newPolicyDraft()">+ New Policy</button>
+        </div>
+      </div>
+
+      <div class="policies-layout">
+        <!-- Policy list -->
+        <div class="policy-list-panel">
+          <div class="policy-list-header">
+            <span style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Policies</span>
+            <span id="pl-count" style="font-size:11px;color:var(--text-muted)"></span>
+          </div>
+          <div id="policy-list"></div>
+        </div>
+
+        <!-- Policy detail / editor -->
+        <div class="policy-detail-panel" id="policy-detail-panel">
+          <div id="policy-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-muted)">
+            <div style="font-size:32px;opacity:0.3">⚙</div>
+            <div style="font-size:13px">Select a policy or create a new one</div>
+          </div>
+          <div id="policy-spec-view" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAGE: ALERTS
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="pg-alerts" class="page">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Alerts</div>
+          <div class="view-subtitle">Anomaly detections across all agent tokens — Claude-enriched</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-ghost" onclick="renderAlertsTable()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-cell">
+          <div class="stat-val" id="al-total"    style="color:var(--danger)">–</div>
+          <div class="stat-lbl">Total Active</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="al-critical" style="color:#E74C3C">–</div>
+          <div class="stat-lbl">Critical</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="al-high"     style="color:#F39C12">–</div>
+          <div class="stat-lbl">High</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="al-medium"   style="color:#4A9FD4">–</div>
+          <div class="stat-lbl">Medium</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-val" id="al-acked"    style="color:var(--text-muted)">–</div>
+          <div class="stat-lbl">Acknowledged</div>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select class="filter-select" id="al-filter-sev" onchange="renderAlertsTable()">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+        </select>
+        <select class="filter-select" id="al-filter-human" onchange="renderAlertsTable()">
+          <option value="">All Identities</option>
+        </select>
+        <select class="filter-select" id="al-filter-acked" onchange="renderAlertsTable()">
+          <option value="active">Active Only</option>
+          <option value="all">Show All</option>
+        </select>
+        <span class="filter-count" id="al-count"></span>
+      </div>
+
+      <div class="alerts-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Alert Type</th>
+              <th>Rule</th>
+              <th>Agent</th>
+              <th>Tool</th>
+              <th>Identity</th>
+              <th>Detected</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="alerts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAGE: IDP CONNECTORS
+    ═══════════════════════════════════════════════════════════ -->
+    <div id="pg-idp" class="page">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Identity Providers</div>
+          <div class="view-subtitle">Manage IdP connectors and sync identities into NineEyes</div>
+        </div>
+        <div class="view-actions">
+          <button class="btn btn-ghost" id="idp-sync-btn" onclick="syncAllIdps()">⟳ Sync All</button>
+          <button class="btn btn-teal"  onclick="showNewConnectorForm()">+ Add Connector</button>
+        </div>
+      </div>
+
+      <div class="idp-layout">
+        <!-- Left: provider list -->
+        <div class="idp-list-panel">
+          <div class="idp-list-header">
+            <span class="idp-list-title">Connected Providers</span>
+            <span id="idp-list-count" style="font-size:10px;color:var(--text-muted)"></span>
+          </div>
+          <div class="idp-list-items" id="idp-list-items"></div>
+          <div style="padding:14px 16px;border-top:1px solid var(--border);flex-shrink:0">
+            <button class="btn btn-ghost" style="width:100%" onclick="showNewConnectorForm()">+ New Connector</button>
+          </div>
+        </div>
+
+        <!-- Right: detail / new connector form -->
+        <div class="idp-right-panel" id="idp-right-panel">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────
+// MOCK DATA
+// ─────────────────────────────────────────────────────────
+
+const MOCK_DATA = [
+  {
+    id: 'human-1', type: 'user',
+    name: 'Sean Connery', email: 'sean.connery@9eyes.io',
+    provider: 'Entra ID',
+    canonical_id: '3a7f9e2c1b8d4a6f0e5c3b9d7a2f8e1c4b6d0a3f',
+    status: 'active',
+    masters: [
+      {
+        id: 'm1-1', type: 'master', name: 'GitHub',
+        pk_h: '04ab3f9e2c1b8d4a6f0e5c3b9d7a2f8e1c4b6d0a',
+        context: 'github.com', rotation_count: 0, created_at: '2025-01-15',
+        agents: [
+          { id: 'a1-1-1', type: 'agent', name: 'Copilot Agent',  agent_type: 'Copilot Agent',  pk_nhi: 'a1b2c3d4e5f6a1b2', rotation_count: 0, alerts: [{ type: 'token_expired', severity: 'HIGH', rule: 'rotation.overdue', ts: '2026-05-20T08:14:00Z', acked: false }] },
+          { id: 'a1-1-2', type: 'agent', name: 'Claude Agent',   agent_type: 'Claude Agent',   pk_nhi: 'b2c3d4e5f6a1b2c3', rotation_count: 2, alerts: [] },
+          { id: 'a1-1-3', type: 'agent', name: 'Command Agent',  agent_type: 'Command Agent',  pk_nhi: 'c3d4e5f6a1b2c3d4', rotation_count: 1, alerts: [] },
+        ]
+      },
+      {
+        id: 'm1-2', type: 'master', name: 'Jira',
+        pk_h: '9d7a2f8e1c4b6d0a3f9e2c1b8d4a6f0e5c3b9d',
+        context: 'atlassian.net', rotation_count: 1, created_at: '2025-02-03',
+        agents: [
+          { id: 'a1-2-1', type: 'agent', name: 'Project Agent', agent_type: 'Project Agent', pk_nhi: 'd4e5f6a1b2c3d4e5', rotation_count: 0, alerts: [] },
+          { id: 'a1-2-2', type: 'agent', name: 'MCP Agent',     agent_type: 'MCP Agent',     pk_nhi: 'e5f6a1b2c3d4e5f6', rotation_count: 0, alerts: [] },
+        ]
+      },
+      {
+        id: 'm1-3', type: 'master', name: 'Office 365',
+        pk_h: '1c4b6d0a3f9e2c1b8d4a6f0e5c3b9d7a2f8e1c',
+        context: 'microsoft.com', rotation_count: 0, created_at: '2025-03-10',
+        agents: [
+          { id: 'a1-3-1', type: 'agent', name: 'Skill Agent',   agent_type: 'Skill Agent',   pk_nhi: 'f6a1b2c3d4e5f6a1', rotation_count: 0, alerts: [] },
+          { id: 'a1-3-2', type: 'agent', name: 'Claude Agent',  agent_type: 'Claude Agent',  pk_nhi: 'a1f6b2c3d4e5a1f6', rotation_count: 1, alerts: [{ type: 'insufficient_permissions', severity: 'CRITICAL', rule: 'scope.out_of_policy', ts: '2026-05-21T11:02:00Z', acked: false }] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'human-2', type: 'user',
+    name: 'George Lazenby', email: 'george.lazenby@9eyes.io',
+    provider: 'Entra ID',
+    canonical_id: 'f8e1c4b6d0a3f9e2c1b8d4a6f0e5c3b9d7a2f8e1',
+    status: 'active',
+    masters: [
+      {
+        id: 'm2-1', type: 'master', name: 'GitHub',
+        pk_h: 'b8d4a6f0e5c3b9d7a2f8e1c4b6d0a3f9e2c1b8d4',
+        context: 'github.com', rotation_count: 2, created_at: '2025-01-20',
+        agents: [
+          { id: 'a2-1-1', type: 'agent', name: 'Copilot Agent',  agent_type: 'Copilot Agent',  pk_nhi: 'b1c2d3e4f5a6b1c2', rotation_count: 0, alerts: [] },
+          { id: 'a2-1-2', type: 'agent', name: 'Command Agent',  agent_type: 'Command Agent',  pk_nhi: 'c2d3e4f5a6b1c2d3', rotation_count: 1, alerts: [] },
+        ]
+      },
+      {
+        id: 'm2-2', type: 'master', name: 'Confluence',
+        pk_h: 'd0a3f9e2c1b8d4a6f0e5c3b9d7a2f8e1c4b6d0a3',
+        context: 'atlassian.net', rotation_count: 0, created_at: '2025-04-01',
+        agents: [
+          { id: 'a2-2-1', type: 'agent', name: 'Project Agent', agent_type: 'Project Agent', pk_nhi: 'd3e4f5a6b1c2d3e4', rotation_count: 0, alerts: [] },
+          { id: 'a2-2-2', type: 'agent', name: 'Skill Agent',   agent_type: 'Skill Agent',   pk_nhi: 'e3f4a5b6c1d2e3f4', rotation_count: 0, alerts: [{ type: 'user_locked_out', severity: 'CRITICAL', rule: 'scope.escalation', ts: '2026-05-22T09:45:00Z', acked: false }] },
+        ]
+      },
+      {
+        id: 'm2-3', type: 'master', name: 'Slack',
+        pk_h: 'e0a3f9e2c1b8d4a6f0e5c3b9d7a2f8e1c4b6d0a3',
+        context: 'slack.com', rotation_count: 0, created_at: '2025-05-01',
+        agents: [
+          { id: 'a2-3-1', type: 'agent', name: 'Claude Agent', agent_type: 'Claude Agent', pk_nhi: 'f3a4b5c6d1e2f3a4', rotation_count: 0, alerts: [] },
+          { id: 'a2-3-2', type: 'agent', name: 'MCP Agent',    agent_type: 'MCP Agent',    pk_nhi: 'a3b4c5d6e1f2a3b4', rotation_count: 1, alerts: [] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'human-3', type: 'user',
+    name: 'Roger Moore', email: 'roger.moore@9eyes.io',
+    provider: 'Entra ID',
+    canonical_id: '7a2f8e1c4b6d0a3f9e2c1b8d4a6f0e5c3b9d7a2f',
+    status: 'active',
+    masters: [
+      {
+        id: 'm3-1', type: 'master', name: 'GitHub',
+        pk_h: 'e5c3b9d7a2f8e1c4b6d0a3f9e2c1b8d4a6f0e5c3',
+        context: 'github.com', rotation_count: 1, created_at: '2025-02-14',
+        agents: [
+          { id: 'a3-1-1', type: 'agent', name: 'Claude Agent',  agent_type: 'Claude Agent',  pk_nhi: 'e4f5a6b1c2d3e4f5', rotation_count: 0, alerts: [] },
+          { id: 'a3-1-2', type: 'agent', name: 'Copilot Agent', agent_type: 'Copilot Agent', pk_nhi: 'f5a6b1c2d3e4f5a6', rotation_count: 2, alerts: [{ type: 'invalid_token', severity: 'CRITICAL', rule: 'geo.tor_vpn', ts: '2026-05-23T07:30:00Z', acked: false }] },
+        ]
+      },
+      {
+        id: 'm3-2', type: 'master', name: 'Jira',
+        pk_h: 'f5c3b9d7a2f8e1c4b6d0a3f9e2c1b8d4a6f0e5c3',
+        context: 'atlassian.net', rotation_count: 0, created_at: '2025-03-20',
+        agents: [
+          { id: 'a3-2-1', type: 'agent', name: 'Project Agent', agent_type: 'Project Agent', pk_nhi: 'a6b1c2d3e4f5a6b1', rotation_count: 0, alerts: [] },
+          { id: 'a3-2-2', type: 'agent', name: 'Skill Agent',   agent_type: 'Skill Agent',   pk_nhi: 'b6c1d2e3f4a5b6c1', rotation_count: 1, alerts: [{ type: 'user_disabled', severity: 'MEDIUM', rule: 'schedule.off_hours', ts: '2026-05-22T16:55:00Z', acked: false }] },
+        ]
+      },
+      {
+        id: 'm3-3', type: 'master', name: 'Office 365',
+        pk_h: 'c5d3b9e7a2f8e1c4b6d0a3f9e2c1b8d4a6f0e5c3',
+        context: 'microsoft.com', rotation_count: 0, created_at: '2025-04-10',
+        agents: [
+          { id: 'a3-3-1', type: 'agent', name: 'MCP Agent',     agent_type: 'MCP Agent',     pk_nhi: 'c6d1e2f3a4b5c6d1', rotation_count: 0, alerts: [] },
+          { id: 'a3-3-2', type: 'agent', name: 'Command Agent', agent_type: 'Command Agent', pk_nhi: 'd6e1f2a3b4c5d6e1', rotation_count: 0, alerts: [] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'human-4', type: 'user',
+    name: 'Timothy Dalton', email: 'timothy.dalton@9eyes.io',
+    provider: 'Entra ID',
+    canonical_id: 'b2e9f4c1a3d7e0b5f8c2a6d4e1b9f3c7a0d5e8b2',
+    status: 'active',
+    masters: [
+      {
+        id: 'm4-1', type: 'master', name: 'AWS',
+        pk_h: 'c9f2a1b4e7d0c3f6a9b2e5d8c1f4a7b0e3d6c9f2',
+        context: 'aws.amazon.com', rotation_count: 3, created_at: '2025-01-08',
+        agents: [
+          { id: 'a4-1-1', type: 'agent', name: 'Pipeline Agent',  agent_type: 'Pipeline Agent',  pk_nhi: 'e1f2a3b4c5d6e1f2', rotation_count: 1, alerts: [{ type: 'rate_burst',       severity: 'HIGH',     rule: 'rate.burst',          ts: '2026-05-23T05:12:00Z', acked: false }] },
+          { id: 'a4-1-2', type: 'agent', name: 'Monitor Agent',   agent_type: 'Monitor Agent',   pk_nhi: 'f2a3b4c5d6e1f2a3', rotation_count: 0, alerts: [] },
+          { id: 'a4-1-3', type: 'agent', name: 'Scanner Agent',   agent_type: 'Scanner Agent',   pk_nhi: 'a4b5c6d7e8f1a4b5', rotation_count: 2, alerts: [{ type: 'geo_new_country', severity: 'HIGH',     rule: 'geo.new_country',     ts: '2026-05-22T14:38:00Z', acked: false }] },
+        ]
+      },
+      {
+        id: 'm4-2', type: 'master', name: 'Splunk',
+        pk_h: 'd1b4e7a0c3f6b9e2a5d8b1e4a7d0b3f6e9a2d5b8',
+        context: 'splunk.com', rotation_count: 0, created_at: '2025-03-15',
+        agents: [
+          { id: 'a4-2-1', type: 'agent', name: 'Audit Agent',     agent_type: 'Audit Agent',     pk_nhi: 'b5c6d7e8f1a2b5c6', rotation_count: 0, alerts: [] },
+          { id: 'a4-2-2', type: 'agent', name: 'Monitor Agent',   agent_type: 'Monitor Agent',   pk_nhi: 'c6d7e8f1a2b3c6d7', rotation_count: 0, alerts: [{ type: 'off_hours_access', severity: 'MEDIUM',   rule: 'schedule.off_hours',  ts: '2026-05-21T23:55:00Z', acked: true  }] },
+        ]
+      },
+      {
+        id: 'm4-3', type: 'master', name: 'Salesforce',
+        pk_h: 'e2c5f8b1d4a7e0b3f6c9a2d5f8c1e4b7a0d3f6c9',
+        context: 'salesforce.com', rotation_count: 1, created_at: '2025-04-22',
+        agents: [
+          { id: 'a4-3-1', type: 'agent', name: 'Workflow Agent',  agent_type: 'Workflow Agent',  pk_nhi: 'd7e8f1a2b3c4d7e8', rotation_count: 0, alerts: [] },
+          { id: 'a4-3-2', type: 'agent', name: 'Claude Agent',    agent_type: 'Claude Agent',    pk_nhi: 'e8f1a2b3c4d5e8f1', rotation_count: 1, alerts: [] },
+        ]
+      },
+      {
+        id: 'm4-4', type: 'master', name: 'Okta',
+        pk_h: 'f3d6a9b2e5c8f1a4b7e0c3d6a9b2e5c8f1a4b7e0',
+        context: 'okta.com', rotation_count: 0, created_at: '2025-05-10',
+        agents: [
+          { id: 'a4-4-1', type: 'agent', name: 'Scanner Agent',   agent_type: 'Scanner Agent',   pk_nhi: 'f1a2b3c4d5e6f1a2', rotation_count: 0, alerts: [{ type: 'new_connector', severity: 'MEDIUM', rule: 'first_seen.connector', ts: '2026-05-23T09:01:00Z', acked: false }] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'human-5', type: 'user',
+    name: 'Pierce Brosnan', email: 'pierce.brosnan@9eyes.io',
+    provider: 'Entra ID',
+    canonical_id: 'e5a8c2f1b4d7e0a3c6f9b2e5a8c2f1b4d7e0a3c6',
+    status: 'active',
+    masters: [
+      {
+        id: 'm5-1', type: 'master', name: 'GitLab',
+        pk_h: 'a1d4b7e0c3f6a9b2e5d8c1f4a7b0e3d6c9f2a1d4',
+        context: 'gitlab.com', rotation_count: 0, created_at: '2025-02-01',
+        agents: [
+          { id: 'a5-1-1', type: 'agent', name: 'Pipeline Agent',  agent_type: 'Pipeline Agent',  pk_nhi: 'a2b3c4d5e6f7a2b3', rotation_count: 0, alerts: [] },
+          { id: 'a5-1-2', type: 'agent', name: 'Scanner Agent',   agent_type: 'Scanner Agent',   pk_nhi: 'b3c4d5e6f7a1b3c4', rotation_count: 1, alerts: [{ type: 'scope_escalation', severity: 'CRITICAL', rule: 'scope.escalation', ts: '2026-05-23T06:47:00Z', acked: false }] },
+        ]
+      },
+      {
+        id: 'm5-2', type: 'master', name: 'ServiceNow',
+        pk_h: 'b2e5a8c1d4f7b0e3a6d9b2e5a8c1d4f7b0e3a6d9',
+        context: 'service-now.com', rotation_count: 1, created_at: '2025-03-07',
+        agents: [
+          { id: 'a5-2-1', type: 'agent', name: 'Workflow Agent',  agent_type: 'Workflow Agent',  pk_nhi: 'c4d5e6f7a1b2c4d5', rotation_count: 0, alerts: [] },
+          { id: 'a5-2-2', type: 'agent', name: 'Audit Agent',     agent_type: 'Audit Agent',     pk_nhi: 'd5e6f7a1b2c3d5e6', rotation_count: 2, alerts: [] },
+          { id: 'a5-2-3', type: 'agent', name: 'MCP Agent',       agent_type: 'MCP Agent',       pk_nhi: 'e6f7a1b2c3d4e6f7', rotation_count: 0, alerts: [] },
+        ]
+      },
+      {
+        id: 'm5-3', type: 'master', name: 'Azure DevOps',
+        pk_h: 'c3f6a9b2e5d8c1f4a7b0e3d6c9f2a1d4b7e0c3f6',
+        context: 'dev.azure.com', rotation_count: 2, created_at: '2025-04-18',
+        agents: [
+          { id: 'a5-3-1', type: 'agent', name: 'Pipeline Agent',  agent_type: 'Pipeline Agent',  pk_nhi: 'f7a1b2c3d4e5f7a1', rotation_count: 0, alerts: [] },
+          { id: 'a5-3-2', type: 'agent', name: 'Command Agent',   agent_type: 'Command Agent',   pk_nhi: 'a8b1c2d3e4f5a8b1', rotation_count: 1, alerts: [{ type: 'off_hours_access', severity: 'MEDIUM', rule: 'schedule.off_hours', ts: '2026-05-22T02:30:00Z', acked: false }] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'system-1', type: 'system',
+    name: 'CI/CD Pipeline', email: 'ci-pipeline@9eyes.io',
+    provider: 'GitHub Actions',
+    canonical_id: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0',
+    status: 'active',
+    masters: [
+      {
+        id: 'ms1-1', type: 'master', name: 'GitHub',
+        pk_h: 'b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0',
+        context: 'github.com', rotation_count: 5, created_at: '2025-01-01',
+        agents: [
+          { id: 'as1-1-1', type: 'agent', name: 'Build Agent',  agent_type: 'Pipeline Agent', pk_nhi: 'c1d2e3f4a5b6c1d2', rotation_count: 3, alerts: [] },
+          { id: 'as1-1-2', type: 'agent', name: 'Deploy Agent', agent_type: 'Pipeline Agent', pk_nhi: 'd2e3f4a5b6c1d2e3', rotation_count: 2, alerts: [{ type: 'scope_escalation', severity: 'HIGH', rule: 'scope.escalation', ts: '2026-05-23T10:15:00Z', acked: false }] },
+          { id: 'as1-1-3', type: 'agent', name: 'Test Agent',   agent_type: 'Pipeline Agent', pk_nhi: 'e3f4a5b6c7d8e3f4', rotation_count: 1, alerts: [] },
+        ]
+      },
+      {
+        id: 'ms1-2', type: 'master', name: 'AWS',
+        pk_h: 'e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1',
+        context: 'aws.amazon.com', rotation_count: 8, created_at: '2025-01-01',
+        agents: [
+          { id: 'as1-2-1', type: 'agent', name: 'ECR Push Agent', agent_type: 'Pipeline Agent', pk_nhi: 'e3f4a5b6c1d2e3f4', rotation_count: 4, alerts: [] },
+          { id: 'as1-2-2', type: 'agent', name: 'ECS Deploy Agent', agent_type: 'Pipeline Agent', pk_nhi: 'f4a5b6c7d8e9f4a5', rotation_count: 2, alerts: [] },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'system-2', type: 'system',
+    name: 'Security Scanner', email: 'scanner@9eyes.io',
+    provider: 'Internal',
+    canonical_id: 'f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0',
+    status: 'active',
+    masters: [
+      {
+        id: 'ms2-1', type: 'master', name: 'Splunk',
+        pk_h: 'a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0',
+        context: 'splunk.com', rotation_count: 2, created_at: '2025-02-15',
+        agents: [
+          { id: 'as2-1-1', type: 'agent', name: 'Audit Agent',  agent_type: 'Audit Agent',   pk_nhi: 'f4a5b6c1d2e3f4a5', rotation_count: 1, alerts: [] },
+          { id: 'as2-1-2', type: 'agent', name: 'SIEM Agent',   agent_type: 'Monitor Agent', pk_nhi: 'a5b6c1d2e3f4a5b6', rotation_count: 0, alerts: [] },
+        ]
+      },
+      {
+        id: 'ms2-2', type: 'master', name: 'GitHub',
+        pk_h: 'b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1',
+        context: 'github.com', rotation_count: 1, created_at: '2025-03-01',
+        agents: [
+          { id: 'as2-2-1', type: 'agent', name: 'Trivy Scanner', agent_type: 'Scanner Agent', pk_nhi: 'b6c1d2e3f4a5b6c1', rotation_count: 2, alerts: [] },
+          { id: 'as2-2-2', type: 'agent', name: 'DAST Agent',    agent_type: 'Scanner Agent', pk_nhi: 'c7d2e3f4a5b6c7d2', rotation_count: 0, alerts: [{ type: 'rate_burst', severity: 'MEDIUM', rule: 'rate.burst', ts: '2026-05-23T14:20:00Z', acked: false }] },
+        ]
+      }
+    ]
+  }
+];
+
+// ─────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────
+let currentIdentity = null;
+let currentTreeMode = 'tree';
+
+// ─────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────
+
+function showAllIdentities() {
+  document.getElementById('pg-all').classList.add('active');
+  document.getElementById('pg-detail').classList.remove('active');
+  document.getElementById('nav-all').classList.add('active');
+  document.getElementById('nav-detail').style.display = 'none';
+  currentIdentity = null;
+  renderOpsMainPage();
+}
+
+function showIdentityDetail(id) {
+  const identity = MOCK_DATA.find(d => d.id === id);
+  if (!identity) return;
+  currentIdentity = identity;
+
+  document.getElementById('pg-all').classList.remove('active');
+  document.getElementById('pg-detail').classList.add('active');
+  document.getElementById('bc-name').textContent = identity.name;
+
+  // Sidebar update
+  const navDetail = document.getElementById('nav-detail');
+  navDetail.style.display = 'flex';
+  navDetail.classList.add('active');
+  document.getElementById('nav-detail-name').textContent = identity.name;
+  document.getElementById('nav-all').classList.remove('active');
+
+  // Stats
+  const masterCount = identity.masters.length;
+  const agentCount  = identity.masters.reduce((s, m) => s + m.agents.length, 0);
+  const rotations   = identity.masters.reduce((s, m) => s + m.rotation_count + m.agents.reduce((a, ag) => a + ag.rotation_count, 0), 0);
+  const alerts      = identity.masters.reduce((s, m) => s + m.agents.reduce((a, ag) => a + ag.alerts.length, 0), 0);
+
+  document.getElementById('ds-masters').textContent   = masterCount;
+  document.getElementById('ds-agents').textContent    = agentCount;
+  document.getElementById('ds-rotations').textContent = rotations;
+  document.getElementById('ds-alerts').textContent    = alerts;
+
+  // Reset detail panel
+  document.getElementById('dp-empty').style.display   = 'flex';
+  document.getElementById('dp-content').style.display = 'none';
+
+  if (currentTreeMode === 'tree') {
+    document.getElementById('tree-area').style.display = 'flex';
+    document.getElementById('flat-list').style.display = 'none';
+    setTimeout(() => renderTree(identity), 30);
+  } else {
+    document.getElementById('tree-area').style.display = 'none';
+    document.getElementById('flat-list').style.display = 'block';
+    renderFlatList(identity);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// IDENTITY CARDS
+// ─────────────────────────────────────────────────────────
+
+function renderIdentityCards() {
+  renderOpsMainPage();
+}
+
+// ─────────────────────────────────────────────────────────
+// TREE RENDER (D3)
+// ─────────────────────────────────────────────────────────
+
+function buildHierarchy(identity) {
+  return {
+    id: identity.id, type: 'human', name: identity.name, data: identity,
+    children: identity.masters.map(m => ({
+      id: m.id, type: 'master', name: m.name, data: m,
+      children: m.agents.map(a => ({
+        id: a.id, type: 'agent', name: a.name, data: a, children: []
+      }))
+    }))
+  };
+}
+
+const NODE_R     = { human: 46, master: 34, agent: 26 };
+const NODE_COLOR = { human: '#F5A623', master: '#00D9B8', agent: '#4A9FD4' };
+const NODE_DIM   = { human: 'rgba(245,166,35,0.12)', master: 'rgba(0,217,184,0.10)', agent: 'rgba(74,159,212,0.10)' };
+const NODE_MID   = { human: 'rgba(245,166,35,0.20)', master: 'rgba(0,217,184,0.18)', agent: 'rgba(74,159,212,0.16)' };
+const LINK_COLOR = { 'human-master': '#F5A623', 'master-agent': '#00D9B8' };
+const NODE_ICON  = { human: '◈', master: 'M', agent: '⬡' };
+
+function renderTree(identity) {
+  const container = document.getElementById('tree-area');
+  d3.select('#tree-svg').selectAll('*').remove();
+
+  const W = container.clientWidth  || 800;
+  const H = container.clientHeight || 500;
+  // Margins account for: NODE_R.human(46) + outer ring(12) + label(40) = ~100
+  const mt = 110, mr = 100, mb = 110, ml = 100;
+
+  const svg = d3.select('#tree-svg').attr('width', W).attr('height', H);
+
+  // Defs: glow filters + gradients
+  const defs = svg.append('defs');
+  ['human','master','agent'].forEach(t => {
+    const col = NODE_COLOR[t];
+    const f = defs.append('filter')
+      .attr('id', `glow-${t}`)
+      .attr('x', '-80%').attr('y', '-80%')
+      .attr('width', '260%').attr('height', '260%');
+    f.append('feGaussianBlur')
+      .attr('stdDeviation', t === 'human' ? '10' : t === 'master' ? '7' : '5')
+      .attr('result', 'blur');
+    const fm = f.append('feMerge');
+    fm.append('feMergeNode').attr('in', 'blur');
+    fm.append('feMergeNode').attr('in', 'blur');
+    fm.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    // Radial gradient for node fill
+    const rg = defs.append('radialGradient')
+      .attr('id', `grad-${t}`)
+      .attr('cx', '40%').attr('cy', '35%');
+    rg.append('stop').attr('offset', '0%')
+      .attr('stop-color', col).attr('stop-opacity', 0.22);
+    rg.append('stop').attr('offset', '100%')
+      .attr('stop-color', col).attr('stop-opacity', 0.05);
+  });
+
+  // Alert glow filter (red)
+  const alertFilt = defs.append('filter').attr('id','glow-alert')
+    .attr('x','-80%').attr('y','-80%').attr('width','260%').attr('height','260%');
+  alertFilt.append('feGaussianBlur').attr('stdDeviation','6').attr('result','blur');
+  const alertMerge = alertFilt.append('feMerge');
+  alertMerge.append('feMergeNode').attr('in','blur');
+  alertMerge.append('feMergeNode').attr('in','SourceGraphic');
+
+  const g = svg.append('g').attr('transform', `translate(${ml},${mt})`);
+  const root = d3.hierarchy(buildHierarchy(identity));
+  d3.tree().size([W - ml - mr, H - mt - mb])(root);
+
+  // Links — glowing connector lines
+  g.selectAll('.tree-link-glow')
+    .data(root.links())
+    .enter().append('path')
+    .attr('class', 'tree-link')
+    .attr('stroke', d => LINK_COLOR[`${d.source.data.type}-${d.target.data.type}`] || '#2A5298')
+    .attr('stroke-width', 3)
+    .attr('stroke-opacity', 0.12)
+    .attr('filter', d => `url(#glow-${d.source.data.type})`)
+    .attr('d', d3.linkVertical().x(d => d.x).y(d => d.y));
+
+  g.selectAll('.tree-link')
+    .data(root.links())
+    .enter().append('path')
+    .attr('class', 'tree-link')
+    .attr('stroke', d => LINK_COLOR[`${d.source.data.type}-${d.target.data.type}`] || '#2A5298')
+    .attr('stroke-width', 1.5)
+    .attr('stroke-dasharray', '6,4')
+    .attr('d', d3.linkVertical().x(d => d.x).y(d => d.y));
+
+  // Nodes
+  const node = g.selectAll('.node')
+    .data(root.descendants())
+    .enter().append('g')
+    .attr('transform', d => `translate(${d.x},${d.y})`)
+    .style('cursor', 'pointer')
+    .on('click', (event, d) => { event.stopPropagation(); selectNode(d.data); });
+
+  // Outer pulse halo (outermost ring — kept close to avoid clipping)
+  node.append('circle')
+    .attr('r', d => NODE_R[d.data.type] + 12)
+    .attr('fill', 'none')
+    .attr('stroke', d => NODE_COLOR[d.data.type])
+    .attr('stroke-width', 0.6)
+    .attr('stroke-opacity', 0.18)
+    .attr('stroke-dasharray', '2,8');
+
+  // Mid ring
+  node.append('circle')
+    .attr('r', d => NODE_R[d.data.type] + 6)
+    .attr('fill', 'none')
+    .attr('stroke', d => NODE_COLOR[d.data.type])
+    .attr('stroke-width', 1)
+    .attr('stroke-opacity', 0.3)
+    .attr('stroke-dasharray', d => d.data.type === 'human' ? '6,4' : '3,5');
+
+  // Outer ring (solid border)
+  node.append('circle')
+    .attr('r', d => NODE_R[d.data.type] + 1)
+    .attr('fill', 'none')
+    .attr('stroke', d => NODE_COLOR[d.data.type])
+    .attr('stroke-width', d => d.data.type === 'human' ? 2 : 1.5)
+    .attr('stroke-opacity', 0.55);
+
+  // Main filled circle (gradient)
+  node.append('circle')
+    .attr('class', 'node-main')
+    .attr('r', d => NODE_R[d.data.type])
+    .attr('fill', d => `url(#grad-${d.data.type})`)
+    .attr('stroke', d => NODE_COLOR[d.data.type])
+    .attr('stroke-width', d => d.data.type === 'human' ? 2.5 : 2)
+    .attr('filter', d => `url(#glow-${d.data.type})`);
+
+  // Inner accent ring
+  node.append('circle')
+    .attr('r', d => NODE_R[d.data.type] - 8)
+    .attr('fill', 'none')
+    .attr('stroke', d => NODE_COLOR[d.data.type])
+    .attr('stroke-width', 0.8)
+    .attr('stroke-opacity', 0.4);
+
+  // Alert ring (dashed danger ring, sits between mid and outer halo)
+  node.filter(d => d.data.type === 'agent' && d.data.data.alerts.length > 0)
+    .append('circle')
+    .attr('r', d => NODE_R[d.data.type] + 9)
+    .attr('fill', 'none')
+    .attr('stroke', '#E74C3C')
+    .attr('stroke-width', 1.5)
+    .attr('stroke-dasharray', '4,3')
+    .attr('filter', 'url(#glow-alert)')
+    .attr('opacity', 0.85);
+
+  // Icon text inside node
+  node.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dominant-baseline', 'central')
+    .attr('font-size', d => d.data.type === 'human' ? '20px' : d.data.type === 'master' ? '15px' : '13px')
+    .attr('font-weight', '700')
+    .attr('fill', d => NODE_COLOR[d.data.type])
+    .attr('filter', d => `url(#glow-${d.data.type})`)
+    .text(d => NODE_ICON[d.data.type]);
+
+  // Node type label inside (small, below icon)
+  node.filter(d => d.data.type !== 'human').append('text')
+    .attr('text-anchor', 'middle')
+    .attr('y', d => NODE_R[d.data.type] - 6)
+    .attr('font-size', '7px')
+    .attr('letter-spacing', '0.8px')
+    .attr('fill', d => NODE_COLOR[d.data.type])
+    .attr('opacity', 0.5)
+    .attr('font-family', 'monospace')
+    .text(d => d.data.type.toUpperCase());
+
+  // Name label below node
+  node.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('y', d => NODE_R[d.data.type] + 22)
+    .attr('font-size', d => d.data.type === 'human' ? '13px' : '11px')
+    .attr('font-weight', d => d.data.type === 'human' ? '700' : '600')
+    .attr('fill', d => NODE_COLOR[d.data.type])
+    .text(d => d.data.name);
+
+  // Sublabel
+  node.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('y', d => NODE_R[d.data.type] + 35)
+    .attr('font-size', '10px')
+    .attr('fill', '#6B85A8')
+    .text(d => {
+      if (d.data.type === 'human')  return identity.provider;
+      if (d.data.type === 'master') return d.data.data.context;
+      return d.data.data.agent_type;
+    });
+
+  // Click background to deselect
+  svg.on('click', () => {
+    d3.selectAll('.node-main').attr('stroke-width', d => d.data.type === 'human' ? 2.5 : 2);
+    document.getElementById('dp-empty').style.display   = 'flex';
+    document.getElementById('dp-content').style.display = 'none';
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// FLAT LIST
+// ─────────────────────────────────────────────────────────
+
+function renderFlatList(identity) {
+  const el = document.getElementById('flat-list');
+  el.innerHTML = '';
+
+  identity.masters.forEach(master => {
+    const wrap = document.createElement('div');
+    wrap.style.marginBottom = '20px';
+
+    const masterRow = document.createElement('div');
+    masterRow.className = 'flat-master-row';
+    masterRow.onclick = () => selectNode({ id: master.id, type: 'master', name: master.name, data: master });
+    masterRow.innerHTML = `
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--col-master-dim);border:2px solid var(--col-master);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--col-master);flex-shrink:0">M</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${master.name}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:monospace">${master.pk_h.substring(0,24)}…</div>
+      </div>
+      <span style="font-size:10px;color:var(--text-muted)">${master.agents.length} agents</span>
+    `;
+    wrap.appendChild(masterRow);
+
+    const agentWrap = document.createElement('div');
+    agentWrap.style.cssText = 'padding-left:44px;display:flex;flex-direction:column;gap:6px';
+
+    master.agents.forEach(agent => {
+      const row = document.createElement('div');
+      row.className = 'flat-agent-row';
+      row.onclick = () => selectNode({ id: agent.id, type: 'agent', name: agent.name, data: agent });
+      row.innerHTML = `
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--col-agent-dim);border:1.5px solid var(--col-agent);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--col-agent);flex-shrink:0">⬡</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">${agent.name}</div>
+          <div style="font-size:10px;color:var(--text-muted)">${agent.agent_type} · rot=${agent.rotation_count}</div>
+        </div>
+        ${agent.alerts.length > 0
+          ? agent.alerts.map(a => `<span style="font-size:10px;color:var(--danger);background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);padding:2px 8px;border-radius:10px;margin-left:4px">⚠ ${alertLabel(a.type)}</span>`).join('')
+          : `<span style="font-size:10px;color:var(--success)">✓</span>`}
+      `;
+      agentWrap.appendChild(row);
+    });
+
+    wrap.appendChild(agentWrap);
+    el.appendChild(wrap);
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// TOGGLE TREE / FLAT
+// ─────────────────────────────────────────────────────────
+
+function setTreeMode(mode) {
+  currentTreeMode = mode;
+  document.getElementById('tog-tree').classList.toggle('active', mode === 'tree');
+  document.getElementById('tog-flat').classList.toggle('active', mode === 'flat');
+
+  if (mode === 'tree') {
+    document.getElementById('tree-area').style.display = 'flex';
+    document.getElementById('flat-list').style.display = 'none';
+    if (currentIdentity) setTimeout(() => renderTree(currentIdentity), 30);
+  } else {
+    document.getElementById('tree-area').style.display = 'none';
+    document.getElementById('flat-list').style.display = 'block';
+    if (currentIdentity) renderFlatList(currentIdentity);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// IDP CONNECTORS
+// ─────────────────────────────────────────────────────────
+
+const IDP_MOCK = [
+  {
+    id: 'idp-1',
+    name: '9Eyes Azure AD',
+    icon: '🔷',
+    providerType: 'azuread',
+    authorityUrl: 'https://login.microsoftonline.com/9eyes.onmicrosoft.com',
+    clientId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    clientSecret: '••••••••••••••••',
+    scopes: 'openid profile email User.Read',
+    emailAttribute: 'mail',
+    syncInterval: '30',
+    status: 'ok',
+    lastSync: '2026-05-24 08:12',
+    usersImported: 47,
+    groupsImported: 12,
+    pendingNew: 3
+  },
+  {
+    id: 'idp-2',
+    name: 'Keycloak (Dev)',
+    icon: '🔑',
+    providerType: 'keycloak',
+    authorityUrl: 'https://auth.dev.9eyes.io/realms/platform',
+    clientId: '9eyes-platform',
+    clientSecret: '••••••••••••••••',
+    scopes: 'openid email profile roles',
+    emailAttribute: 'email',
+    syncInterval: '60',
+    status: 'ok',
+    lastSync: '2026-05-23 22:05',
+    usersImported: 8,
+    groupsImported: 3,
+    pendingNew: 0
+  },
+  {
+    id: 'idp-3',
+    name: 'Okta (Staging)',
+    icon: '🔵',
+    providerType: 'okta',
+    authorityUrl: 'https://9eyes-staging.okta.com',
+    clientId: '0oa5bc6789defg',
+    clientSecret: '••••••••••••••••',
+    scopes: 'openid profile email groups',
+    emailAttribute: 'email',
+    syncInterval: '15',
+    status: 'error',
+    lastSync: '2026-05-22 14:30',
+    usersImported: 22,
+    groupsImported: 6,
+    pendingNew: 0
+  }
+];
+
+let selectedIdpId = IDP_MOCK[0].id;
+
+function renderIdpPage() {
+  // list
+  const listEl = document.getElementById('idp-list-items');
+  document.getElementById('idp-list-count').textContent = IDP_MOCK.length + ' connected';
+  listEl.innerHTML = IDP_MOCK.map(idp => `
+    <div class="idp-item${idp.id === selectedIdpId ? ' active' : ''}" onclick="selectIdp('${idp.id}')">
+      <div class="idp-item-icon">${idp.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="idp-item-name">${idp.name}</div>
+        <div class="idp-item-type">${providerLabel(idp.providerType)}</div>
+      </div>
+      <span class="idp-item-status ${idp.status === 'ok' ? 'idp-status-ok' : 'idp-status-err'}">${idp.status === 'ok' ? 'OK' : 'ERR'}</span>
+    </div>
+  `).join('');
+  // right panel
+  const sel = IDP_MOCK.find(i => i.id === selectedIdpId) || IDP_MOCK[0];
+  showIdpDetail(sel);
+}
+
+function providerLabel(t) {
+  return { azuread: 'Azure Active Directory', keycloak: 'Keycloak', okta: 'Okta', google: 'Google Workspace', pingid: 'PingID', saml: 'SAML 2.0', oidc: 'Generic OIDC' }[t] || t;
+}
+
+function selectIdp(id) {
+  selectedIdpId = id;
+  renderIdpPage();
+}
+
+function showIdpDetail(idp) {
+  const rp = document.getElementById('idp-right-panel');
+  rp.innerHTML = `
+    <div class="idp-form-wrap">
+      <div class="idp-detail-card">
+        <div class="idp-detail-header">
+          <div class="idp-detail-icon">${idp.icon}</div>
+          <div>
+            <div class="idp-detail-name">${idp.name}</div>
+            <div class="idp-detail-type">${providerLabel(idp.providerType)}</div>
+          </div>
+          <span class="idp-item-status ${idp.status === 'ok' ? 'idp-status-ok' : 'idp-status-err'}" style="margin-left:auto">${idp.status === 'ok' ? '● Connected' : '✕ Error'}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">Last sync: ${idp.lastSync}</div>
+        <div class="idp-sync-stats">
+          <div class="idp-sync-stat">
+            <div class="idp-sync-val">${idp.usersImported}</div>
+            <div class="idp-sync-lbl">Users</div>
+          </div>
+          <div class="idp-sync-stat">
+            <div class="idp-sync-val">${idp.groupsImported}</div>
+            <div class="idp-sync-lbl">Groups</div>
+          </div>
+          <div class="idp-sync-stat">
+            <div class="idp-sync-val" style="${idp.pendingNew > 0 ? 'color:var(--col-human)' : ''}">${idp.pendingNew}</div>
+            <div class="idp-sync-lbl">Pending New</div>
+          </div>
+        </div>
+        <div class="idp-btn-row" style="margin-top:16px">
+          <button class="btn btn-teal" onclick="syncSingleIdp('${idp.id}')">⟳ Sync Now</button>
+          <button class="btn btn-ghost" onclick="showEditConnectorForm('${idp.id}')">Edit Settings</button>
+          <span class="sync-feedback" id="sync-fb-${idp.id}">Sync complete, ${idp.pendingNew} new users imported.</span>
+        </div>
+      </div>
+
+      <div class="idp-form-title" style="margin-bottom:16px">Connector Settings</div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Connector Name</label>
+          <input class="idp-input" value="${idp.name}" id="edit-name-${idp.id}"/>
+        </div>
+        <div class="idp-field">
+          <label class="idp-label">Provider Type</label>
+          <select class="idp-select" id="edit-type-${idp.id}">${providerOptions(idp.providerType)}</select>
+        </div>
+      </div>
+      <div class="idp-field-group full">
+        <div class="idp-field">
+          <label class="idp-label">Authority / Tenant URL</label>
+          <input class="idp-input mono" value="${idp.authorityUrl}" id="edit-url-${idp.id}"/>
+        </div>
+      </div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Client ID</label>
+          <input class="idp-input mono" value="${idp.clientId}" id="edit-cid-${idp.id}"/>
+        </div>
+        <div class="idp-field">
+          <label class="idp-label">Client Secret</label>
+          <input class="idp-input mono" type="password" value="${idp.clientSecret}" id="edit-sec-${idp.id}"/>
+        </div>
+      </div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Scopes</label>
+          <input class="idp-input" value="${idp.scopes}" id="edit-scopes-${idp.id}"/>
+        </div>
+        <div class="idp-field">
+          <label class="idp-label">Email Attribute Mapping</label>
+          <input class="idp-input" value="${idp.emailAttribute}" id="edit-email-${idp.id}"/>
+        </div>
+      </div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Sync Interval (minutes)</label>
+          <select class="idp-select" id="edit-interval-${idp.id}">
+            <option value="5"  ${idp.syncInterval==='5'  ?'selected':''}>Every 5 min</option>
+            <option value="15" ${idp.syncInterval==='15' ?'selected':''}>Every 15 min</option>
+            <option value="30" ${idp.syncInterval==='30' ?'selected':''}>Every 30 min</option>
+            <option value="60" ${idp.syncInterval==='60' ?'selected':''}>Every 60 min</option>
+            <option value="360" ${idp.syncInterval==='360'?'selected':''}>Every 6 hrs</option>
+          </select>
+        </div>
+      </div>
+      <div class="idp-btn-row">
+        <button class="btn btn-teal" onclick="saveIdpSettings('${idp.id}')">Save Changes</button>
+        <button class="btn btn-ghost" onclick="testIdpConnection('${idp.id}')">Test Connection</button>
+        <span class="sync-feedback" id="save-fb-${idp.id}"></span>
+      </div>
+    </div>
+  `;
+}
+
+function providerOptions(selected) {
+  const opts = [
+    ['azuread','Azure Active Directory'],['keycloak','Keycloak'],['okta','Okta'],
+    ['google','Google Workspace'],['pingid','PingID'],['saml','SAML 2.0'],['oidc','Generic OIDC']
+  ];
+  return opts.map(([v,l]) => `<option value="${v}" ${v===selected?'selected':''}>${l}</option>`).join('');
+}
+
+function showNewConnectorForm() {
+  selectedIdpId = null;
+  document.querySelectorAll('.idp-item').forEach(el => el.classList.remove('active'));
+  const rp = document.getElementById('idp-right-panel');
+  rp.innerHTML = `
+    <div class="idp-form-wrap">
+      <div class="idp-form-title">Add New Identity Provider</div>
+      <div class="idp-form-sub">Configure a new IdP connector. NineEyes will use OIDC or SAML federation to import identities.</div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Connector Name</label>
+          <input class="idp-input" id="new-name" placeholder="e.g. Company Azure AD"/>
+        </div>
+        <div class="idp-field">
+          <label class="idp-label">Provider Type</label>
+          <select class="idp-select" id="new-type">${providerOptions('azuread')}</select>
+        </div>
+      </div>
+      <div class="idp-field-group full">
+        <div class="idp-field">
+          <label class="idp-label">Authority / Tenant URL</label>
+          <input class="idp-input mono" id="new-url" placeholder="https://login.microsoftonline.com/your-tenant"/>
+        </div>
+      </div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Client ID</label>
+          <input class="idp-input mono" id="new-cid" placeholder="Application (client) ID"/>
+        </div>
+        <div class="idp-field">
+          <label class="idp-label">Client Secret</label>
+          <input class="idp-input mono" type="password" id="new-sec" placeholder="Client secret value"/>
+        </div>
+      </div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Scopes</label>
+          <input class="idp-input" id="new-scopes" placeholder="openid profile email" value="openid profile email"/>
+        </div>
+        <div class="idp-field">
+          <label class="idp-label">Email Attribute Mapping</label>
+          <input class="idp-input" id="new-email" placeholder="email" value="email"/>
+        </div>
+      </div>
+      <div class="idp-field-group">
+        <div class="idp-field">
+          <label class="idp-label">Sync Interval (minutes)</label>
+          <select class="idp-select" id="new-interval">
+            <option value="5">Every 5 min</option>
+            <option value="15">Every 15 min</option>
+            <option value="30" selected>Every 30 min</option>
+            <option value="60">Every 60 min</option>
+            <option value="360">Every 6 hrs</option>
+          </select>
+        </div>
+      </div>
+      <div class="idp-btn-row">
+        <button class="btn btn-teal" onclick="saveNewConnector()">Connect Provider</button>
+        <button class="btn btn-ghost" onclick="renderIdpPage()">Cancel</button>
+        <span class="sync-feedback" id="new-fb"></span>
+      </div>
+    </div>
+  `;
+}
+
+function saveNewConnector() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { showFeedback('new-fb', 'Please enter a connector name.', '#E74C3C'); return; }
+  const newIdp = {
+    id: 'idp-' + Date.now(),
+    name,
+    icon: '🔗',
+    providerType: document.getElementById('new-type').value,
+    authorityUrl: document.getElementById('new-url').value,
+    clientId: document.getElementById('new-cid').value,
+    clientSecret: document.getElementById('new-sec').value,
+    scopes: document.getElementById('new-scopes').value,
+    emailAttribute: document.getElementById('new-email').value,
+    syncInterval: document.getElementById('new-interval').value,
+    status: 'ok',
+    lastSync: 'Never',
+    usersImported: 0,
+    groupsImported: 0,
+    pendingNew: 0
+  };
+  IDP_MOCK.push(newIdp);
+  selectedIdpId = newIdp.id;
+  showFeedback('new-fb', 'Connector saved!', 'var(--col-master)');
+  setTimeout(() => renderIdpPage(), 900);
+}
+
+function showEditConnectorForm(id) { /* settings already visible in detail view */ }
+
+function saveIdpSettings(id) {
+  showFeedback('save-fb-' + id, 'Settings saved.', 'var(--col-master)');
+}
+
+function testIdpConnection(id) {
+  showFeedback('save-fb-' + id, 'Connection successful.', '#2ECC71');
+}
+
+function syncSingleIdp(id) {
+  const idp = IDP_MOCK.find(i => i.id === id);
+  if (!idp) return;
+  const btn = event.target;
+  btn.textContent = '⟳ Syncing...';
+  btn.disabled = true;
+  setTimeout(() => {
+    idp.lastSync = new Date().toISOString().slice(0,16).replace('T',' ');
+    idp.pendingNew = 0;
+    btn.textContent = '⟳ Sync Now';
+    btn.disabled = false;
+    showFeedback('sync-fb-' + id, 'Sync complete.', 'var(--col-master)');
+    showIdpDetail(idp);
+  }, 1400);
+}
+
+function syncAllIdps() {
+  const btn = document.getElementById('idp-sync-btn');
+  btn.textContent = '⟳ Syncing...';
+  btn.disabled = true;
+  setTimeout(() => {
+    IDP_MOCK.forEach(idp => {
+      idp.lastSync = new Date().toISOString().slice(0,16).replace('T',' ');
+      idp.pendingNew = 0;
+    });
+    btn.textContent = '⟳ Sync All';
+    btn.disabled = false;
+    renderIdpPage();
+  }, 1800);
+}
+
+function showFeedback(id, msg, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color || 'var(--col-master)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ─────────────────────────────────────────────────────────
+// DETAIL PANEL
+// ─────────────────────────────────────────────────────────
+
+function selectNode(nodeData) {
+  // Highlight in tree
+  d3.selectAll('.node-main')
+    .attr('stroke-width', d => d.data.id === nodeData.id ? 4 : (d.data.type === 'human' ? 2.5 : 2))
+    .attr('stroke', d => d.data.id === nodeData.id ? '#fff' : NODE_COLOR[d.data.type]);
+
+  document.getElementById('dp-empty').style.display   = 'none';
+  document.getElementById('dp-content').style.display = 'block';
+
+  const d    = nodeData.data;
+  const type = nodeData.type;
+
+  const typeLabel = { human: 'Human Identity', master: 'Master Token', agent: 'Agent Token' };
+  let html = `
+    <div style="margin-bottom:20px">
+      <span class="dp-type-badge dp-type-${type}">${typeLabel[type]}</span>
+      <div class="dp-name">${nodeData.name}</div>
+      <div class="dp-sub">${type === 'human' ? d.email : type === 'master' ? d.context : d.agent_type}</div>
+    </div>
+  `;
+
+  html += `<div class="dp-section"><div class="dp-section-title">Properties</div>`;
+
+  if (type === 'human') {
+    html += dpRow('Provider', d.provider);
+    html += dpRow('Status', '<span style="color:var(--success)">● Active</span>');
+    html += dpRow('Masters', currentIdentity.masters.length);
+    html += dpRow('Total Agents', currentIdentity.masters.reduce((s,m) => s + m.agents.length, 0));
+    html += `</div>`;
+    html += `<div class="dp-section"><div class="dp-section-title">Canonical ID</div>`;
+    html += `<div class="dp-mono">${d.canonical_id}</div></div>`;
+  } else if (type === 'master') {
+    html += dpRow('Context', d.context);
+    html += dpRow('Rotations', d.rotation_count);
+    html += dpRow('Created', d.created_at);
+    html += dpRow('Agents', d.agents.length);
+    html += `</div>`;
+    html += `<div class="dp-section"><div class="dp-section-title">Public Key (PK_H)</div>`;
+    html += `<div class="dp-mono">${d.pk_h}</div></div>`;
+  } else {
+    html += dpRow('Type', d.agent_type);
+    html += dpRow('Rotations', d.rotation_count);
+    html += dpRow('Status', '<span style="color:var(--success)">● Active</span>');
+    html += `</div>`;
+    html += `<div class="dp-section"><div class="dp-section-title">Public Key (PK_NHI)</div>`;
+    html += `<div class="dp-mono">${d.pk_nhi}…</div></div>`;
+    if (d.alerts.length > 0) {
+      html += `<div class="dp-section"><div class="dp-section-title" style="color:var(--danger)">⚠ Alerts (${d.alerts.length})</div>`;
+      d.alerts.forEach(a => {
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">`;
+        html += `<span style="color:var(--danger);font-size:12px">${alertLabel(a.type)}</span>`;
+        html += `<span style="color:var(--text-muted);font-size:11px">${new Date(a.ts).toLocaleString()}</span>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  html += `<div class="dp-actions">`;
+  if (type === 'agent') {
+    html += `<button class="dp-btn dp-btn-ghost">↻ Rotate Key</button>`;
+    html += `<button class="dp-btn dp-btn-ghost">📋 Audit Log</button>`;
+    html += `<button class="dp-btn dp-btn-warn">✕ Revoke Agent</button>`;
+  } else if (type === 'master') {
+    html += `<button class="dp-btn dp-btn-teal" onclick="toggleIssueForm('${d.id}')">+ Issue Agent Token</button>`;
+    html += `<button class="dp-btn dp-btn-ghost">↻ Rotate Master</button>`;
+  } else {
+    html += `<button class="dp-btn dp-btn-ghost">+ Add Master Token</button>`;
+    html += `<button class="dp-btn dp-btn-ghost">📋 Audit Log</button>`;
+  }
+  html += `</div>`;
+
+  // Issue token form placeholder (toggled on demand)
+  if (type === 'master') {
+    html += `<div id="itf-${d.id}" style="display:none"></div>`;
+  }
+
+  document.getElementById('dp-content').innerHTML = html;
+}
+
+function toggleIssueForm(masterId) {
+  const container = document.getElementById('itf-' + masterId);
+  if (!container) return;
+  if (container.style.display !== 'none') {
+    container.style.display = 'none';
+    return;
+  }
+  // Find the master data for context
+  let masterData = null;
+  for (const human of MOCK_DATA) {
+    const found = human.masters.find(m => m.id === masterId);
+    if (found) { masterData = found; break; }
+  }
+  const policyNames = ['Default NHI Policy', 'Read-Only Access', 'Write-Limited', 'Full Trust', 'Custom...'];
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="itf-wrap">
+      <div class="itf-title">
+        Issue New Agent Token
+        <span class="itf-close" onclick="document.getElementById('itf-${masterId}').style.display='none'">✕</span>
+      </div>
+      <div class="itf-field">
+        <label class="itf-label">Agent Name</label>
+        <input class="itf-input" id="itf-aname-${masterId}" placeholder="e.g. GitHub Action Runner #3"/>
+      </div>
+      <div class="itf-field">
+        <label class="itf-label">Agent Type</label>
+        <select class="itf-select" id="itf-atype-${masterId}">
+          <option value="ci">CI/CD Agent</option>
+          <option value="automation">Automation Script</option>
+          <option value="service">Microservice</option>
+          <option value="assistant">AI Assistant</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="itf-field">
+        <label class="itf-label">Policy</label>
+        <select class="itf-select" id="itf-policy-${masterId}">
+          ${policyNames.map(p => `<option>${p}</option>`).join('')}
+        </select>
+      </div>
+      <div class="itf-field">
+        <label class="itf-label">Token TTL</label>
+        <select class="itf-select" id="itf-ttl-${masterId}">
+          <option value="1h">1 hour</option>
+          <option value="8h">8 hours</option>
+          <option value="24h" selected>24 hours</option>
+          <option value="7d">7 days</option>
+          <option value="30d">30 days</option>
+          <option value="never">No expiry</option>
+        </select>
+      </div>
+      <div class="itf-field">
+        <label class="itf-label">Scopes</label>
+        <div class="itf-scopes">
+          <label class="itf-scope-chip"><input type="checkbox" checked id="itf-sc-read-${masterId}"> read</label>
+          <label class="itf-scope-chip"><input type="checkbox" id="itf-sc-write-${masterId}"> write</label>
+          <label class="itf-scope-chip"><input type="checkbox" id="itf-sc-exec-${masterId}"> execute</label>
+          <label class="itf-scope-chip"><input type="checkbox" id="itf-sc-audit-${masterId}"> audit</label>
+        </div>
+      </div>
+      <div class="itf-field" style="margin-top:12px">
+        <button class="dp-btn dp-btn-teal" style="width:100%" onclick="generateAgentToken('${masterId}')">Generate Token</button>
+      </div>
+      <div id="itf-result-${masterId}"></div>
+    </div>
+  `;
+}
+
+function generateAgentToken(masterId) {
+  const name    = document.getElementById('itf-aname-' + masterId).value.trim() || 'unnamed-agent';
+  const atype   = document.getElementById('itf-atype-' + masterId).value;
+  const policy  = document.getElementById('itf-policy-' + masterId).value;
+  const ttl     = document.getElementById('itf-ttl-' + masterId).value;
+  const scopes  = ['read','write','exec','audit'].filter(s => document.getElementById('itf-sc-' + s + '-' + masterId)?.checked).join(',');
+
+  // mock crypto output
+  const rand = () => [...Array(32)].map(() => Math.floor(Math.random()*16).toString(16)).join('');
+  const pk   = 'pk_nhi_' + rand();
+  const sig  = 'sig_' + rand() + rand().slice(0,16);
+  const iat  = Math.floor(Date.now()/1000);
+  const exp  = ttl === 'never' ? 0 : iat + { '1h':3600,'8h':28800,'24h':86400,'7d':604800,'30d':2592000 }[ttl];
+
+  const payload = JSON.stringify({
+    pk_nhi: pk,
+    sig_binding: sig,
+    master_id: masterId,
+    agent_name: name,
+    agent_type: atype,
+    policy,
+    scopes: scopes || 'read',
+    ttl,
+    iat,
+    exp: exp || 'non-expiring'
+  }, null, 2);
+
+  const resultEl = document.getElementById('itf-result-' + masterId);
+  resultEl.innerHTML = `
+    <div class="itf-result" id="itf-payload-${masterId}">
+      <button class="itf-copy-btn" onclick="copyItfPayload('${masterId}')">Copy</button>
+      ${payload.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+    </div>
+  `;
+}
+
+function copyItfPayload(masterId) {
+  const el = document.getElementById('itf-payload-' + masterId);
+  const text = el.innerText.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = el.querySelector('.itf-copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  });
+}
+
+function dpRow(key, val) {
+  return `<div class="dp-row"><span class="dp-row-key">${key}</span><span class="dp-row-val">${val}</span></div>`;
+}
+
+const ALERT_LABELS = {
+  token_expired:            'Token Expired',
+  insufficient_permissions: 'Insufficient Permissions',
+  invalid_token:            'Invalid Token',
+  user_locked_out:          'User Locked Out',
+  user_disabled:            'User Disabled',
+  rate_burst:               'Rate Burst',
+  geo_new_country:          'New Country',
+  off_hours_access:         'Off-Hours Access',
+  new_connector:            'New Connector',
+  scope_escalation:         'Scope Escalation',
+  tor_vpn_detected:         'TOR/VPN Detected',
+  rotation_overdue:         'Rotation Overdue',
+};
+function alertLabel(type) {
+  return ALERT_LABELS[type] || type;
+}
+
+// ─────────────────────────────────────────────────────────
+// RESIZE
+// ─────────────────────────────────────────────────────────
+
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (currentIdentity && currentTreeMode === 'tree') renderTree(currentIdentity);
+  }, 150);
+});
+
+// ─────────────────────────────────────────────────────────
+// SECTION SWITCHING
+// ─────────────────────────────────────────────────────────
+
+const SECTIONS = ['identities','agents','policies','alerts','idp'];
+
+function switchSection(name) {
+  SECTIONS.forEach(s => {
+    document.getElementById('nt-' + s).classList.toggle('active', s === name);
+  });
+  // hide all main pages
+  document.getElementById('pg-all').classList.remove('active');
+  document.getElementById('pg-detail').classList.remove('active');
+  document.getElementById('pg-agents').classList.remove('active');
+  document.getElementById('pg-policies').classList.remove('active');
+  document.getElementById('pg-alerts').classList.remove('active');
+  document.getElementById('pg-idp').classList.remove('active');
+
+  if (name === 'identities') {
+    document.getElementById('pg-all').classList.add('active');
+  } else if (name === 'agents') {
+    document.getElementById('pg-agents').classList.add('active');
+    renderAgentsTable();
+  } else if (name === 'policies') {
+    document.getElementById('pg-policies').classList.add('active');
+    renderPoliciesList();
+  } else if (name === 'alerts') {
+    document.getElementById('pg-alerts').classList.add('active');
+    renderAlertsTable();
+  } else if (name === 'idp') {
+    document.getElementById('pg-idp').classList.add('active');
+    renderIdpPage();
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// AGENTS PAGE
+// ─────────────────────────────────────────────────────────
+
+function flattenAgents() {
+  const rows = [];
+  MOCK_DATA.forEach(human => {
+    human.masters.forEach(master => {
+      master.agents.forEach(agent => {
+        rows.push({ ...agent, _master: master, _human: human });
+      });
+    });
+  });
+  return rows;
+}
+
+function renderAgentsTable() {
+  const all = flattenAgents();
+  const humanFilter = document.getElementById('ag-filter-human').value;
+  const typeFilter  = document.getElementById('ag-filter-type').value;
+  const alertFilter = document.getElementById('ag-filter-alert').value;
+
+  // Populate filter dropdowns on first render
+  const humanSel = document.getElementById('ag-filter-human');
+  if (humanSel.options.length === 1) {
+    MOCK_DATA.forEach(h => {
+      const o = document.createElement('option');
+      o.value = h.id; o.textContent = h.name;
+      humanSel.appendChild(o);
+    });
+  }
+  const typeSel = document.getElementById('ag-filter-type');
+  if (typeSel.options.length === 1) {
+    [...new Set(all.map(a => a.agent_type))].sort().forEach(t => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      typeSel.appendChild(o);
+    });
+  }
+
+  let rows = all;
+  if (humanFilter) rows = rows.filter(r => r._human.id === humanFilter);
+  if (typeFilter)  rows = rows.filter(r => r.agent_type === typeFilter);
+  if (alertFilter === 'alerted') rows = rows.filter(r => r.alerts.length > 0);
+  if (alertFilter === 'clean')   rows = rows.filter(r => r.alerts.length === 0);
+
+  // Stats
+  const total     = all.length;
+  const alerted   = all.filter(r => r.alerts.length > 0).length;
+  const rotations = all.reduce((s, r) => s + r.rotation_count, 0);
+  const types     = new Set(all.map(r => r.agent_type)).size;
+  document.getElementById('ag-total').textContent     = total;
+  document.getElementById('ag-alerted').textContent   = alerted;
+  document.getElementById('ag-rotations').textContent = rotations;
+  document.getElementById('ag-types').textContent     = types;
+  document.getElementById('ag-count').textContent     = `${rows.length} agent${rows.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('agents-tbody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const alertsHtml = r.alerts.length === 0
+      ? `<span style="color:var(--success);font-size:11px">✓ Clean</span>`
+      : r.alerts.map(a => `<span class="sev sev-${a.severity.toLowerCase()}">${alertLabel(a.type)}</span>`).join(' ');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600">${r.name}</td>
+      <td><span class="agent-type-pill">${r.agent_type}</span></td>
+      <td><span class="master-chip">◈ ${r._master.name}</span></td>
+      <td><span class="human-chip">● ${r._human.name}</span></td>
+      <td style="font-family:monospace;font-size:11px;color:var(--text-muted)">${r.pk_nhi.substring(0,12)}…</td>
+      <td style="text-align:center">${r.rotation_count}</td>
+      <td>${alertsHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// POLICIES PAGE
+// ─────────────────────────────────────────────────────────
+
+const POLICIES = [
+  {
+    id: 'pol-001',
+    name: 'CI Bot Baseline',
+    agent_types: ['Command Agent','MCP Agent'],
+    status: 'active',
+    source_prompt: 'Read-only CI bot, rotate every 30 days, no weekend access',
+    generated_by: 'claude',
+    version: 1,
+    access: { allowed_scopes: ['read'], denied_scopes: ['write','execute','delete'], connector_allowlist: [] },
+    schedule: { allowed_days: ['monday','tuesday','wednesday','thursday','friday'], denied_days: ['saturday','sunday'], allowed_hours_utc: null },
+    rotation: { interval_days: 30, grace_period_days: 3, mandatory: true },
+    network: { ip_allowlist: [], require_datacenter_ip: false, require_mtls: true },
+    security: { max_token_ttl_seconds: 3600, audit_logging: true, anomaly_alerts: true, re_auth_interval_hours: 24 },
+    org_locked_fields: ['require_mtls','audit_logging'],
+  },
+  {
+    id: 'pol-002',
+    name: 'AI Agent Standard',
+    agent_types: ['Claude Agent','Copilot Agent','Skill Agent'],
+    status: 'active',
+    source_prompt: 'AI agents with read/write, rotate every 14 days, require mTLS, alert on off-hours',
+    generated_by: 'claude',
+    version: 2,
+    access: { allowed_scopes: ['read','write'], denied_scopes: ['delete','execute'], connector_allowlist: [] },
+    schedule: { allowed_days: ['monday','tuesday','wednesday','thursday','friday'], denied_days: ['saturday','sunday'], allowed_hours_utc: '06:00-22:00' },
+    rotation: { interval_days: 14, grace_period_days: 2, mandatory: true },
+    network: { ip_allowlist: [], require_datacenter_ip: false, require_mtls: true },
+    security: { max_token_ttl_seconds: 7200, audit_logging: true, anomaly_alerts: true, re_auth_interval_hours: 12 },
+    org_locked_fields: ['require_mtls','audit_logging'],
+  },
+  {
+    id: 'pol-003',
+    name: 'Project Agent Full Access',
+    agent_types: ['Project Agent'],
+    status: 'active',
+    source_prompt: 'Project agents with full read/write/execute, 90-day rotation, datacenter IPs only',
+    generated_by: 'claude',
+    version: 1,
+    access: { allowed_scopes: ['read','write','execute'], denied_scopes: ['delete'], connector_allowlist: ['Jira','Confluence'] },
+    schedule: { allowed_days: ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'], denied_days: [], allowed_hours_utc: null },
+    rotation: { interval_days: 90, grace_period_days: 7, mandatory: true },
+    network: { ip_allowlist: ['10.0.0.0/8'], require_datacenter_ip: true, require_mtls: true },
+    security: { max_token_ttl_seconds: 14400, audit_logging: true, anomaly_alerts: true, re_auth_interval_hours: 48 },
+    org_locked_fields: ['require_mtls','audit_logging'],
+  },
+];
+
+let activePolicyId = null;
+let policyDraftMode = false;
+
+function renderPoliciesList() {
+  const list = document.getElementById('policy-list');
+  list.innerHTML = '';
+  POLICIES.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'policy-item' + (p.id === activePolicyId ? ' active' : '');
+    el.onclick = () => selectPolicy(p.id);
+    el.innerHTML = `
+      <div class="policy-item-name">${p.name}</div>
+      <div class="policy-item-meta">
+        ${p.agent_types.slice(0,2).join(', ')}${p.agent_types.length > 2 ? '…' : ''}
+        &nbsp;·&nbsp; rot ${p.rotation.interval_days}d
+        &nbsp;·&nbsp; v${p.version}
+        ${p.generated_by === 'claude' ? '&nbsp;<span style="color:var(--col-master);font-size:10px">✦ Claude</span>' : ''}
+      </div>
+    `;
+    list.appendChild(el);
+  });
+  document.getElementById('pl-count').textContent = POLICIES.length + ' policies';
+  if (activePolicyId) selectPolicy(activePolicyId);
+}
+
+function selectPolicy(id) {
+  activePolicyId = id;
+  policyDraftMode = false;
+  document.querySelectorAll('.policy-item').forEach(el => el.classList.remove('active'));
+  const p = POLICIES.find(x => x.id === id);
+  if (!p) return;
+
+  // Mark active
+  const items = document.querySelectorAll('.policy-item');
+  items.forEach((el, i) => { if (POLICIES[i].id === id) el.classList.add('active'); });
+
+  document.getElementById('policy-empty').style.display = 'none';
+  const view = document.getElementById('policy-spec-view');
+  view.style.display = 'block';
+
+  const lockedSet = new Set(p.org_locked_fields);
+  function specRow(key, val, locked) {
+    return `<div class="spec-row">
+      <span class="spec-key">${key}${locked ? '<span class="locked-badge">🔒 ORG LOCKED</span>' : ''}</span>
+      <span class="spec-val">${val}</span>
+    </div>`;
+  }
+
+  view.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--text)">${p.name}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+          v${p.version} &nbsp;·&nbsp; generated by <span style="color:var(--col-master)">${p.generated_by === 'claude' ? '✦ Claude' : 'manual'}</span>
+          &nbsp;·&nbsp; targets: ${p.agent_types.join(', ')}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" style="font-size:11px">📋 Clone</button>
+        <button class="btn btn-ghost" style="font-size:11px">✎ Edit</button>
+      </div>
+    </div>
+
+    ${p.source_prompt ? `
+    <div class="nl-box" style="margin-bottom:20px">
+      <div class="nl-box-label">✦ Source Prompt (Claude)</div>
+      <div style="font-size:13px;color:var(--text-label);font-style:italic">"${p.source_prompt}"</div>
+    </div>` : ''}
+
+    <div class="spec-section">
+      <div class="spec-title">Access</div>
+      ${specRow('Allowed Scopes', p.access.allowed_scopes.join(', ') || '—', false)}
+      ${specRow('Denied Scopes',  p.access.denied_scopes.join(', ')  || '—', false)}
+      ${specRow('Connector Allowlist', p.access.connector_allowlist.length ? p.access.connector_allowlist.join(', ') : 'All connectors', false)}
+    </div>
+
+    <div class="spec-section">
+      <div class="spec-title">Schedule</div>
+      ${specRow('Allowed Days', p.schedule.allowed_days.join(', '), false)}
+      ${specRow('Denied Days',  p.schedule.denied_days.length ? p.schedule.denied_days.join(', ') : '—', false)}
+      ${specRow('Allowed Hours (UTC)', p.schedule.allowed_hours_utc || 'Any', false)}
+    </div>
+
+    <div class="spec-section">
+      <div class="spec-title">Rotation</div>
+      ${specRow('Rotation Interval', p.rotation.interval_days + ' days', false)}
+      ${specRow('Grace Period',      p.rotation.grace_period_days + ' days', false)}
+      ${specRow('Mandatory',         p.rotation.mandatory ? 'Yes' : 'No', false)}
+    </div>
+
+    <div class="spec-section">
+      <div class="spec-title">Network</div>
+      ${specRow('IP Allowlist',         p.network.ip_allowlist.length ? p.network.ip_allowlist.join(', ') : 'Any', false)}
+      ${specRow('Datacenter IP Only',   p.network.require_datacenter_ip ? 'Yes' : 'No', false)}
+      ${specRow('Require mTLS',         p.network.require_mtls ? 'Yes' : 'No', lockedSet.has('require_mtls'))}
+    </div>
+
+    <div class="spec-section">
+      <div class="spec-title">Security</div>
+      ${specRow('Max Token TTL',        (p.security.max_token_ttl_seconds / 3600) + 'h', false)}
+      ${specRow('Re-auth Interval',     p.security.re_auth_interval_hours + 'h', false)}
+      ${specRow('Audit Logging',        p.security.audit_logging ? 'Enabled' : 'Disabled', lockedSet.has('audit_logging'))}
+      ${specRow('Anomaly Alerts',       p.security.anomaly_alerts ? 'Enabled' : 'Disabled', false)}
+    </div>
+  `;
+}
+
+function newPolicyDraft() {
+  activePolicyId = null;
+  document.querySelectorAll('.policy-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('policy-empty').style.display = 'none';
+  const view = document.getElementById('policy-spec-view');
+  view.style.display = 'block';
+  view.innerHTML = `
+    <div style="margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">New Policy</div>
+      <div style="font-size:11px;color:var(--text-muted)">Describe what you need in plain English. Claude will generate a validated PolicySpec.</div>
+    </div>
+    <div class="nl-box">
+      <div class="nl-box-label">✦ Describe your policy</div>
+      <textarea class="nl-input" id="nl-prompt" rows="3" placeholder="e.g. Read-only CI bot, rotate every 30 days, no weekend access, require datacenter IPs…"></textarea>
+      <div class="nl-actions">
+        <button class="btn btn-ghost" style="font-size:12px">Clear</button>
+        <button class="btn btn-teal"  style="font-size:12px" onclick="simulateGenerate()">✦ Generate with Claude</button>
+      </div>
+    </div>
+    <div id="nl-result" style="display:none"></div>
+  `;
+}
+
+function simulateGenerate() {
+  const prompt = document.getElementById('nl-prompt').value.trim();
+  if (!prompt) return;
+  const result = document.getElementById('nl-result');
+  result.style.display = 'block';
+  result.innerHTML = `<div style="color:var(--col-master);font-size:12px;padding:12px 0">✦ Claude is generating your PolicySpec…</div>`;
+  setTimeout(() => {
+    result.innerHTML = `
+      <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:4px">
+        <div style="font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--col-master);margin-bottom:10px">✦ Generated PolicySpec</div>
+        <pre style="font-size:11px;color:var(--text-label);font-family:'Cascadia Code',monospace;white-space:pre-wrap;line-height:1.6">${JSON.stringify({
+          name: 'Generated Policy',
+          agent_types: ['Command Agent'],
+          access: { allowed_scopes: ['read'], denied_scopes: ['write','execute','delete'] },
+          schedule: { denied_days: ['saturday','sunday'] },
+          rotation: { interval_days: 30, grace_period_days: 3, mandatory: true },
+          network: { require_mtls: true },
+          security: { audit_logging: true, anomaly_alerts: true },
+          org_locked_fields: ['require_mtls','audit_logging'],
+          source_prompt: prompt,
+          generated_by: 'claude',
+          version: 1
+        }, null, 2)}</pre>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+          <button class="btn btn-ghost" style="font-size:11px">✎ Refine</button>
+          <button class="btn btn-teal"  style="font-size:11px">✓ Save Policy</button>
+        </div>
+      </div>
+    `;
+  }, 1200);
+}
+
+// ─────────────────────────────────────────────────────────
+// OPS MAIN PAGE
+// ─────────────────────────────────────────────────────────
+
+const SEV_COLORS = { CRITICAL: '#E74C3C', HIGH: '#F39C12', MEDIUM: '#4A9FD4' };
+
+function renderOpsMainPage() {
+  // Global counts
+  const gMasters    = MOCK_DATA.reduce((s, id) => s + id.masters.length, 0);
+  const gAgents     = MOCK_DATA.reduce((s, id) => s + id.masters.reduce((m, ms) => m + ms.agents.length, 0), 0);
+  const gAlerts     = MOCK_DATA.reduce((s, id) => s + id.masters.reduce((m, ms) => m + ms.agents.reduce((a, ag) => a + ag.alerts.filter(x => !x.acked).length, 0), 0), 0);
+  const gIdentities = MOCK_DATA.length;
+
+  // Stats bar
+  const idEl = document.getElementById('gs-identities');
+  if (idEl) idEl.textContent = gIdentities;
+  document.getElementById('gs-masters').textContent = gMasters;
+  document.getElementById('gs-agents').textContent  = gAgents;
+  document.getElementById('gs-alerts').textContent  = gAlerts;
+
+  // Bound ring: % of agents with no active alerts
+  const alertedAgents = MOCK_DATA.reduce((s, id) => s + id.masters.reduce((m, ms) => m + ms.agents.filter(ag => ag.alerts.some(a => !a.acked)).length, 0), 0);
+  const boundPct = gAgents > 0 ? Math.round(((gAgents - alertedAgents) / gAgents) * 100) : 100;
+  const circ = 125.66;
+  const offset = circ * (1 - boundPct / 100);
+  const arc = document.getElementById('bound-ring-arc');
+  const pct = document.getElementById('bound-ring-pct');
+  if (arc) arc.style.strokeDashoffset = offset;
+  if (pct) pct.textContent = boundPct + '%';
+
+  // Sidebar counts
+  document.getElementById('sb-humans').textContent    = gIdentities;
+  document.getElementById('badge-humans').textContent = gIdentities;
+  document.getElementById('sb-masters').textContent   = gMasters;
+  document.getElementById('sb-agents').textContent    = gAgents;
+  document.getElementById('sb-alerts').textContent    = gAlerts;
+
+  // Header sub-count
+  const users   = MOCK_DATA.filter(d => d.type === 'user').length;
+  const systems = MOCK_DATA.filter(d => d.type === 'system').length;
+  const countEl = document.getElementById('op-identity-count');
+  if (countEl) countEl.textContent = users + ' human users · ' + systems + ' service accounts';
+
+  // Identity card grid
+  const grid = document.getElementById('identity-cards-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    MOCK_DATA.forEach(identity => {
+      const isSystem = identity.type === 'system';
+      const col      = isSystem ? 'var(--col-system)' : 'var(--col-human)';
+      const colGlow  = isSystem ? 'var(--col-system-glow)' : 'var(--col-human-glow)';
+      const alerts   = identity.masters.reduce((s, m) => s + m.agents.reduce((a, ag) => a + ag.alerts.filter(x => !x.acked).length, 0), 0);
+      const agents   = identity.masters.reduce((s, m) => s + m.agents.length, 0);
+      const masters  = identity.masters.length;
+      const initials = isSystem
+        ? (identity.name.split(' ').map(n => n[0]).join('').substring(0, 2))
+        : identity.name.split(' ').map(n => n[0]).join('');
+      const alertColor = alerts > 0 ? 'var(--danger)' : 'var(--success)';
+
+      const card = document.createElement('div');
+      card.className = 'id-card ' + (isSystem ? 'system-card' : 'user-card');
+      card.onclick = () => showIdentityDetail(identity.id);
+      card.innerHTML = `
+        <div class="id-card-top">
+          <div class="id-card-avatar ${isSystem ? 'system-av' : 'user-av'}">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div class="id-card-name">${identity.name}</div>
+            <div class="id-card-sub">${identity.email}</div>
+            <span class="id-type-badge ${isSystem ? 'system-badge' : 'user-badge'}">${isSystem ? '⚙ Service Account' : '◈ Human User'}</span>
+          </div>
+        </div>
+        <div class="id-card-stats">
+          <div class="id-card-stat">
+            <div class="id-card-stat-val" style="color:var(--col-master)">${masters}</div>
+            <div class="id-card-stat-lbl">Tools</div>
+          </div>
+          <div class="id-card-stat">
+            <div class="id-card-stat-val" style="color:var(--col-agent)">${agents}</div>
+            <div class="id-card-stat-lbl">Agents</div>
+          </div>
+          <div class="id-card-stat">
+            <div class="id-card-stat-val" style="color:${alertColor}">${alerts}</div>
+            <div class="id-card-stat-lbl">Alerts</div>
+          </div>
+        </div>
+        <div class="id-card-footer">
+          <span class="id-card-cid">cid: ${identity.canonical_id.substring(0, 14)}…</span>
+          <span style="font-size:10px;color:var(--success);text-shadow:0 0 6px var(--success);display:flex;align-items:center;gap:4px">
+            <span style="width:5px;height:5px;background:var(--success);border-radius:50%;display:inline-block;animation:pulse-dot 2s infinite"></span>
+            ACTIVE
+          </span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // Threat overview bars
+  const activeAlerts = allAlertRows().filter(a => !a.acked);
+  const breakdown = { CRITICAL: 0, HIGH: 0, MEDIUM: 0 };
+  activeAlerts.forEach(a => { if (breakdown[a.severity] !== undefined) breakdown[a.severity]++; });
+  const maxCount = Math.max(...Object.values(breakdown), 1);
+
+  const threatEl = document.getElementById('ops-threat-breakdown');
+  if (threatEl) {
+    threatEl.innerHTML = Object.entries(breakdown).map(([sev, count]) => `
+      <div class="threat-row">
+        <span class="threat-label" style="color:${SEV_COLORS[sev]}">${sev}</span>
+        <div class="threat-bar-outer">
+          <div class="threat-bar-inner" style="width:${(count / maxCount) * 100}%;background:${SEV_COLORS[sev]};box-shadow:0 0 6px ${SEV_COLORS[sev]}40"></div>
+        </div>
+        <span class="threat-count" style="color:${SEV_COLORS[sev]}">${count}</span>
+      </div>
+    `).join('');
+  }
+
+  // Alert feed (top 7 unacked, most severe first)
+  const feed = activeAlerts
+    .sort((a, b) => (SEV_ORDER[a.severity] || 9) - (SEV_ORDER[b.severity] || 9))
+    .slice(0, 7);
+
+  const feedEl = document.getElementById('ops-alerts-feed');
+  if (feedEl) {
+    if (feed.length === 0) {
+      feedEl.innerHTML = `<div style="padding:24px 20px;text-align:center;color:var(--success);font-size:12px;opacity:0.8">✓ No active alerts</div>`;
+    } else {
+      const now = Date.now();
+      feedEl.innerHTML = feed.map(a => {
+        const diff = Math.floor((now - new Date(a.ts).getTime()) / 60000);
+        const timeStr = diff < 60 ? diff + 'm ago' : Math.floor(diff / 60) + 'h ago';
+        const humanColor = a._human.type === 'system' ? 'var(--col-system)' : 'var(--col-human)';
+        return `
+          <div class="alert-feed-item" onclick="switchSection('alerts')">
+            <div class="alert-feed-sev" style="background:${SEV_COLORS[a.severity] || '#6B85A8'};box-shadow:0 0 5px ${SEV_COLORS[a.severity] || '#6B85A8'}"></div>
+            <div style="flex:1;min-width:0">
+              <div class="alert-feed-type">${alertLabel(a.type)}</div>
+              <div class="alert-feed-meta">${a._agent.name} · ${a._master.name} · <span style="color:${humanColor}">${a._human.name}</span></div>
+            </div>
+            <div class="alert-feed-ts">${timeStr}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  renderSidebarDonut();
+}
+
+function renderSidebarDonut() {
+  const activeAlerts = allAlertRows().filter(a => !a.acked);
+  const crit  = activeAlerts.filter(a => a.severity === 'CRITICAL').length;
+  const high  = activeAlerts.filter(a => a.severity === 'HIGH').length;
+  const med   = activeAlerts.filter(a => a.severity === 'MEDIUM').length;
+  const totalAgents = MOCK_DATA.reduce((s, h) => s + h.masters.reduce((m, ms) => m + ms.agents.length, 0), 0);
+  const clean = totalAgents - (crit + high + med);
+
+  const segments = [
+    { val: crit,  color: '#E74C3C', label: 'Critical', count: crit  },
+    { val: high,  color: '#F39C12', label: 'High',     count: high  },
+    { val: med,   color: '#4A9FD4', label: 'Medium',   count: med   },
+    { val: clean, color: '#2ECC71', label: 'Clean',    count: clean },
+  ].filter(s => s.val > 0);
+
+  const total = segments.reduce((s, x) => s + x.val, 0) || 1;
+  const cx = 29, cy = 29, r = 24, ir = 15;
+  let angle = -Math.PI / 2;
+  let paths = '';
+
+  segments.forEach(seg => {
+    const a = (seg.val / total) * Math.PI * 2;
+    const gap = segments.length > 1 ? 0.04 : 0;
+    const as = angle + gap / 2, ae = angle + a - gap / 2;
+    const x1 = cx + r * Math.cos(as),   y1 = cy + r * Math.sin(as);
+    const x2 = cx + r * Math.cos(ae),   y2 = cy + r * Math.sin(ae);
+    const ix1 = cx + ir * Math.cos(as), iy1 = cy + ir * Math.sin(as);
+    const ix2 = cx + ir * Math.cos(ae), iy2 = cy + ir * Math.sin(ae);
+    const large = (a - gap) > Math.PI ? 1 : 0;
+    paths += `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${ix2.toFixed(2)},${iy2.toFixed(2)} A${ir},${ir} 0 ${large},0 ${ix1.toFixed(2)},${iy1.toFixed(2)} Z" fill="${seg.color}" opacity="0.88"/>`;
+    angle += a;
+  });
+
+  const totalAlerts = crit + high + med;
+  paths += `<text x="${cx}" y="${cy - 2}" text-anchor="middle" dominant-baseline="central" font-size="12" font-weight="700" fill="#E8EDF5">${totalAlerts}</text>`;
+  paths += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="7" fill="#6B85A8" letter-spacing="0.5">ALERTS</text>`;
+
+  const svg = document.getElementById('mini-donut-svg');
+  if (svg) svg.innerHTML = paths;
+
+  const legendEl = document.getElementById('mini-donut-legend');
+  if (legendEl) {
+    legendEl.innerHTML = segments.map(s =>
+      `<div class="mini-donut-item"><div class="mini-donut-dot" style="background:${s.color}"></div><span>${s.label}: ${s.count}</span></div>`
+    ).join('');
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// ALERTS PAGE
+// ─────────────────────────────────────────────────────────
+
+function allAlertRows() {
+  const rows = [];
+  MOCK_DATA.forEach(human => {
+    human.masters.forEach(master => {
+      master.agents.forEach(agent => {
+        agent.alerts.forEach(a => {
+          rows.push({ ...a, _agent: agent, _master: master, _human: human });
+        });
+      });
+    });
+  });
+  return rows.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+}
+
+const SEV_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+
+function renderAlertsTable() {
+  const all = allAlertRows();
+  const sevFilter   = document.getElementById('al-filter-sev').value;
+  const humanFilter = document.getElementById('al-filter-human').value;
+  const ackedFilter = document.getElementById('al-filter-acked').value;
+
+  // Populate human filter dropdown once
+  const humanSel = document.getElementById('al-filter-human');
+  if (humanSel.options.length === 1) {
+    MOCK_DATA.forEach(h => {
+      const o = document.createElement('option');
+      o.value = h.id; o.textContent = h.name;
+      humanSel.appendChild(o);
+    });
+  }
+
+  let rows = all;
+  if (sevFilter)             rows = rows.filter(r => r.severity === sevFilter);
+  if (humanFilter)           rows = rows.filter(r => r._human.id === humanFilter);
+  if (ackedFilter === 'active') rows = rows.filter(r => !r.acked);
+
+  // Stats
+  const active   = all.filter(r => !r.acked);
+  const critical = active.filter(r => r.severity === 'CRITICAL').length;
+  const high     = active.filter(r => r.severity === 'HIGH').length;
+  const medium   = active.filter(r => r.severity === 'MEDIUM').length;
+  const acked    = all.filter(r => r.acked).length;
+  document.getElementById('al-total').textContent    = active.length;
+  document.getElementById('al-critical').textContent = critical;
+  document.getElementById('al-high').textContent     = high;
+  document.getElementById('al-medium').textContent   = medium;
+  document.getElementById('al-acked').textContent    = acked;
+  document.getElementById('al-count').textContent    = `${rows.length} alert${rows.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('alerts-tbody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    if (r.acked) tr.classList.add('ack-row');
+    tr.innerHTML = `
+      <td><span class="sev sev-${(r.severity||'medium').toLowerCase()}">${r.severity || 'MEDIUM'}</span></td>
+      <td style="font-weight:600;color:var(--danger)">${alertLabel(r.type)}</td>
+      <td><span class="rule-chip">${r.rule || '—'}</span></td>
+      <td style="color:var(--col-agent)">${r._agent.name}</td>
+      <td><span class="master-chip">◈ ${r._master.name}</span></td>
+      <td><span class="human-chip">● ${r._human.name}</span></td>
+      <td style="color:var(--text-muted);font-size:11px">${new Date(r.ts).toLocaleString()}</td>
+      <td>
+        ${r.acked
+          ? '<span style="font-size:10px;color:var(--text-muted)">Acknowledged</span>'
+          : `<button class="alert-action-btn" onclick="ackAlert('${r._agent.id}','${r.ts}')">✓ Ack</button><button class="alert-action-btn revoke" onclick="event.stopPropagation()">✕ Revoke</button>`
+        }
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function ackAlert(agentId, ts) {
+  MOCK_DATA.forEach(h => h.masters.forEach(m => m.agents.forEach(ag => {
+    if (ag.id === agentId) {
+      const a = ag.alerts.find(x => x.ts === ts);
+      if (a) a.acked = true;
+    }
+  })));
+  renderAlertsTable();
+}
+
+renderIdentityCards();
+</script>
+</body>
+</html>
