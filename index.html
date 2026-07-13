@@ -1,26 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>9Eyes — Nothing Moves Unseen</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9Eyes | Non-Human Identity & AI Agent Management Platform</title>
 <meta name="description" content="9Eyes is a cross-platform agent management tool that binds every AI agent to its human owner, giving enterprises instant visibility, trust, and one click revocation.">
 <link rel="canonical" href="https://www.9eyes.io/">
 <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#060E1E">
+<meta name="theme-color" content="#161920">
 <link rel="icon" href="assets/hero-visual.gif">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="9Eyes">
 <meta property="og:url" content="https://www.9eyes.io/">
-<meta property="og:title" content="9Eyes — Nothing Moves Unseen">
+<meta property="og:title" content="9Eyes, Nothing Moves Unseen">
 <meta property="og:description" content="9Eyes is a cross-platform agent management tool that binds every AI agent to its human owner, giving enterprises instant visibility, trust, and one click revocation.">
 <meta property="og:image" content="https://www.9eyes.io/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="9Eyes — Nothing Moves Unseen">
+<meta name="twitter:title" content="9Eyes, Nothing Moves Unseen">
 <meta name="twitter:description" content="9Eyes is a cross-platform agent management tool that binds every AI agent to its human owner, giving enterprises instant visibility, trust, and one click revocation.">
 <meta name="twitter:image" content="https://www.9eyes.io/assets/og-image.png">
 
@@ -36,337 +36,268 @@
   "slogan": "Nothing moves unseen"
 }
 </script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#060E1E;
-    --bg-panel:#0B1728;
-    --bg-card:#0F1F38;
-    --bg-input:#0D1B30;
-    --border:#1A3356;
-    --border-hi:#2A5298;
-
-    --teal:#00D9B8;
-    --teal-glow:rgba(0,217,184,0.28);
-    --teal-dim:rgba(0,217,184,0.1);
-    --amber:#F5A623;
-    --amber-glow:rgba(245,166,35,0.35);
-
-    --text:#E8EDF5;
-    --text-muted:#6B85A8;
-    --text-label:#94AACB;
-    --success:#2ECC71;
-    --warning:#F39C12;
-    --danger:#E74C3C;
+  :root {
+    /* Theme wall-inspired palette, lightened and enhanced with a teal core */
+    --bg: #161920;
+    --panel-bg: #1e2330;
+    --card-bg: rgba(30, 35, 48, 0.7);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(0, 217, 184, 0.25);
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+    --accent: #00D9B8; /* Signature Teal */
+    --human: #F5A623;
+    --agent: #4A9FD4;
+    --danger: #EF4444;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:"Segoe UI", system-ui, -apple-system, sans-serif;
-    line-height:1.5;
-    position:relative;
-  }
-  body::before{
-    content:'';
-    position:fixed;inset:0;
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+
+    /* Recreating your theme wall texture: Carbon micro-mesh overlay */
     background-image:
-      linear-gradient(rgba(0,217,184,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,217,184,0.035) 1px, transparent 1px);
-    background-size:40px 40px;
-    pointer-events:none;
-    z-index:0;
-  }
-  body > * { position:relative; z-index:1; }
-  a{color:inherit;}
-  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
-
-  header{
-    position:sticky;top:0;z-index:10;
-    background:linear-gradient(90deg,#040C1A,var(--bg-panel) 40%,#040C1A);
-    border-bottom:1px solid rgba(0,217,184,0.2);
-  }
-  .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:0.5px;}
-  .brand img{height:32px;width:32px;display:block;object-fit:cover;border-radius:8px;border:1px solid rgba(0,217,184,0.35);}
-  .brand span{text-shadow:0 0 14px rgba(0,217,184,0.5);}
-  nav.links a{margin-left:28px;text-decoration:none;color:var(--text-muted);font-size:14px;transition:color .15s;}
-  nav.links a:hover{color:var(--text);}
-
-  .hero{
-    text-align:center;
-    padding:56px 24px 64px;
-    background:radial-gradient(circle at 50% -10%, rgba(0,217,184,0.08), transparent 60%);
-    overflow:hidden;
-  }
-  .hero-visual{
-    position:relative;
-    width:min(520px, 90vw);
-    margin:0 auto 8px;
-    aspect-ratio:16/9;
-  }
-  .hero-visual img{
-    width:100%;height:100%;object-fit:cover;display:block;
-    --hero-mask:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 293"><defs><filter id="b" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="8"/></filter></defs><rect x="10" y="6" width="500" height="281" rx="30" fill="%23fff" filter="url(%23b)"/></svg>');
-    -webkit-mask-image:var(--hero-mask);
-    mask-image:var(--hero-mask);
-    -webkit-mask-size:100% 100%;
-    mask-size:100% 100%;
-    -webkit-mask-repeat:no-repeat;
-    mask-repeat:no-repeat;
-  }
-  .hero .tagline{
-    color:var(--teal);
-    font-weight:600;
-    font-size:15px;
-    letter-spacing:2px;
-    text-transform:uppercase;
-    margin-bottom:20px;
-    text-shadow:0 0 12px rgba(0,217,184,0.4);
-  }
-  .hero h1{
-    font-size:clamp(32px,5vw,52px);
-    margin:0 0 16px;
-    letter-spacing:-0.5px;
-  }
-  .hero p.lede{
-    max-width:640px;margin:0 auto 36px;
-    color:var(--text-muted);
-    font-size:18px;
-  }
-  .cta-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
-  .btn{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:14px 28px;border-radius:8px;
-    font-weight:600;font-size:15px;text-decoration:none;
-    transition:transform .15s, box-shadow .15s, background .15s;
-    cursor:pointer;border:none;font-family:inherit;
-  }
-  .btn-primary{background:rgba(0,217,184,0.14);color:var(--teal);border:1px solid rgba(0,217,184,0.35);}
-  .btn-primary:hover{background:rgba(0,217,184,0.22);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,217,184,0.2);}
-  .btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border);}
-  .btn-secondary:hover{border-color:var(--border-hi);color:var(--text);}
-  .btn svg{width:14px;height:14px;flex-shrink:0;}
-
-  section{padding:72px 24px;}
-  .section-title{text-align:center;margin-bottom:12px;font-size:clamp(24px,3vw,34px);}
-  .section-sub{text-align:center;color:var(--text-muted);max-width:600px;margin:0 auto 48px;}
-
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;}
-  .pillar{
-    background:var(--bg-card);
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:28px;
-    transition:border-color .15s, box-shadow .15s, transform .15s;
-  }
-  .pillar:hover{border-color:var(--teal);box-shadow:0 0 20px var(--teal-glow);transform:translateY(-2px);}
-  .pillar .icon{
-    width:40px;height:40px;border-radius:10px;
-    background:var(--teal-dim);
-    border:1px solid rgba(0,217,184,0.35);
-    color:var(--teal);
-    display:flex;align-items:center;justify-content:center;
-    font-weight:700;margin-bottom:16px;
-    text-shadow:0 0 10px currentColor;
-  }
-  .pillar h3{margin:0 0 10px;font-size:18px;}
-  .pillar p{margin:0;color:var(--text-muted);font-size:14px;}
-
-  .band{background:var(--bg-panel);border-top:1px solid rgba(0,217,184,0.1);border-bottom:1px solid rgba(0,217,184,0.1);}
-  .band .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
-  .band h2{font-size:clamp(22px,3vw,30px);margin-top:0;}
-  .band ul{color:var(--text-muted);padding-left:20px;}
-  .band li{margin-bottom:10px;}
-
-  .final-cta{text-align:center;padding:88px 24px;}
-  .final-cta h2{font-size:clamp(26px,4vw,38px);margin-bottom:16px;}
-  .final-cta p{color:var(--text-muted);margin-bottom:32px;}
-
-  footer{
-    border-top:1px solid var(--border);
-    padding:32px 24px;text-align:center;color:var(--text-muted);font-size:13px;
+      radial-gradient(circle at 50% 50%, rgba(0, 217, 184, 0.12) 0%, transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 30px 30px, 30px 30px;
   }
 
-  /* ── VIDEO MODAL ─────────────────────────────────────── */
-  .video-modal{
-    display:none;
-    position:fixed;inset:0;z-index:100;
-    background:rgba(2,6,14,0.88);
-    align-items:center;justify-content:center;
-    padding:24px;
+  /* Top Navigation bar */
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 8%; border-bottom: 1px solid var(--border);
+    background: rgba(22, 25, 32, 0.8); backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
   }
-  .video-modal.open{display:flex;}
-  .video-modal-inner{
-    width:min(960px, 100%);
-    background:var(--bg-panel);
-    border:1px solid rgba(0,217,184,0.3);
-    border-radius:14px;
-    box-shadow:0 0 60px rgba(0,217,184,0.15);
-    overflow:hidden;
-  }
-  .video-modal-head{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:14px 18px;border-bottom:1px solid var(--border);
-  }
-  .video-modal-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.4px;}
-  .video-modal-close{
-    cursor:pointer;color:var(--text-muted);font-size:20px;line-height:1;
-    background:none;border:none;padding:4px 8px;
-  }
-  .video-modal-close:hover{color:var(--text);}
-  .video-modal video{display:block;width:100%;height:auto;background:#000;}
+  .logo-container { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo-img { width: 30px; height: 30px; object-fit: contain; }
+  .logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; color: #fff; letter-spacing: 0.5px; }
 
-  @media (max-width:720px){
-    .band .grid-2{grid-template-columns:1fr;}
-    nav.links{display:none;}
+  nav a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; margin-left: 32px; transition: color 0.2s; }
+  nav a:hover { color: var(--accent); }
+
+  /* Hero Section */
+  .hero {
+    max-width: 1200px; margin: 0 auto; padding: 70px 24px 50px;
+    text-align: center; position: relative; z-index: 1;
   }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0, 217, 184, 0.06); border: 1px solid var(--border-glow);
+    padding: 6px 16px; border-radius: 100px; color: var(--accent);
+    font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--accent); }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif; font-size: 52px; font-weight: 700;
+    line-height: 1.15; letter-spacing: -1px; max-width: 900px; margin: 0 auto 24px;
+    color: #FFFFFF;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .hero p { color: var(--text-muted); font-size: 17px; max-width: 660px; margin: 0 auto 40px; }
+
+  /* Action elements */
+  .cta-group { display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 60px; flex-wrap: wrap; }
+  .btn {
+    padding: 13px 26px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary { background: var(--accent); color: #161920; border: none; box-shadow: 0 4px 14px rgba(0, 217, 184, 0.3); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0, 217, 184, 0.5); }
+  .btn-secondary { background: rgba(255, 255, 255, 0.03); color: #fff; border: 1px solid var(--border); }
+  .btn-secondary:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--accent); }
+
+  /* Dashboard Interface Preview Window */
+  .product-preview {
+    background: var(--panel-bg);
+    border: 1px solid var(--border); border-radius: 12px; padding: 24px;
+    max-width: 1000px; margin: 0 auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    position: relative; text-align: left;
+  }
+  .window-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px;}
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+  .window-title { font-size: 11px; font-family: monospace; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Layout Component Architecture */
+  .mock-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; min-height: 280px; }
+  .mock-tree-view { border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 24px; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0, 0, 0, 0.15); }
+
+  /* Tree Nodes styling */
+  .mock-node { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 6px; background: var(--panel-bg); border: 1px solid var(--border); font-size: 12px; font-weight: 600; width: fit-content; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .mock-node.human { border-color: var(--human); color: var(--human); }
+  .mock-node.master { border-color: var(--accent); color: var(--accent); }
+  .mock-node.agent { border-color: var(--agent); color: var(--agent); }
+
+  .tree-line { width: 2px; height: 20px; background: rgba(255,255,255,0.1); }
+
+  .mock-panel { background: rgba(0, 0, 0, 0.1); border: 1px solid var(--border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .mock-row { display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .mock-row span:first-child { color: var(--text-muted); }
+  .mock-row span:last-child { font-family: monospace; color: #FFF; font-weight: 600; }
+
+  .alert-banner { display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 12px; border-radius: 6px; color: var(--danger); font-size: 11px; font-weight: 600; }
+
+  /* Core Metrics Cards */
+  .features { max-width: 1100px; margin: 80px auto 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 0 24px; }
+  .feature-card { background: var(--card-bg); border: 1px solid var(--border); padding: 32px; border-radius: 8px; transition: all 0.2s; backdrop-filter: blur(8px); }
+  .feature-card:hover { border-color: var(--accent); background: var(--panel-bg); transform: translateY(-2px); }
+  .feature-icon { color: var(--accent); font-size: 20px; margin-bottom: 16px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+  .feature-card h3 { font-size: 18px; margin-bottom: 8px; font-weight: 600; color: #FFFFFF; }
+  .feature-card p { color: var(--text-muted); font-size: 14px; }
+
+  @media (max-width: 768px) {
+    h1 { font-size: 36px; }
+    .features, .mock-grid { grid-template-columns: 1fr; }
+    header { padding: 18px 4%; }
+    nav { display: none; }
+  }
+
+  /* Video modal */
+  .video-modal { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(8, 10, 14, 0.88); align-items: center; justify-content: center; padding: 24px; }
+  .video-modal.open { display: flex; }
+  .video-modal-inner { width: min(960px, 100%); background: var(--panel-bg); border: 1px solid var(--border-glow); border-radius: 12px; box-shadow: 0 0 60px rgba(0, 217, 184, 0.15); overflow: hidden; }
+  .video-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .video-modal-title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.4px; }
+  .video-modal-close { cursor: pointer; color: var(--text-muted); font-size: 20px; line-height: 1; background: none; border: none; padding: 4px 8px; }
+  .video-modal-close:hover { color: var(--text); }
+  .video-modal video { display: block; width: 100%; height: auto; background: #000; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="nav">
-    <div class="brand">
-      <img src="assets/hero-visual.gif" alt="9Eyes logo">
-      <span>9EYES</span>
-    </div>
-    <nav class="links">
-      <a href="#how">How it works</a>
-      <a href="#pillars">Platform</a>
-      <a href="#contact">Contact</a>
+  <header>
+    <a href="#" class="logo-container">
+      <img class="logo-img" src="assets/hero-visual.gif" alt="9Eyes logo">
+      <div class="logo-text">9EYES</div>
+    </a>
+    <nav>
+      <a href="#features">Platform</a>
+      <a href="#features">Specifications</a>
+      <a href="mailto:contact@9eyes.io" class="btn btn-secondary" style="padding: 8px 16px; margin-left: 20px;">Contact</a>
     </nav>
-  </div>
-</header>
+  </header>
 
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-visual"><img src="assets/logo-mark.png" alt=""></div>
-    <div class="tagline">Nothing moves unseen</div>
-    <h1>Agent management for a world<br>full of AI agents</h1>
-    <p class="lede">
-      9Eyes is a cross-platform agent management tool that binds every AI agent to its human owner,
-      giving enterprises instant visibility, trust, and one click revocation across any system, cloud, or provider.
-    </p>
-    <div class="cta-row">
-      <a class="btn btn-primary" href="#contact">Request a demo</a>
+  <section class="hero">
+    <div class="badge"><span></span>Nothing moves unseen</div>
+    <h1>Agent management for a<br>world full of AI agents</h1>
+    <p>9Eyes is the cross-platform non-human identity (NHI) management layer that binds automated agents to their human owners, giving enterprises total visibility, cryptographic trust, and instantly revocable control.</p>
+
+    <div class="cta-group">
+      <a href="mailto:contact@9eyes.io" class="btn btn-primary">Request a demo →</a>
       <button class="btn btn-secondary" type="button"
-        data-video-src="assets/video/9eyes-demo.mp4" data-video-title="9Eyes — UI Demo">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        Watch the video
+        data-video-src="assets/video/9eyes-demo.mp4" data-video-title="9Eyes, UI Demo">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8 5v14l11-7z"/></svg>
+        Watch how it works
       </button>
       <button class="btn btn-secondary" type="button"
-        data-video-src="assets/video/9eyes-who-we-are.mp4" data-video-title="9Eyes — Who We Are">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        data-video-src="assets/video/9eyes-who-we-are.mp4" data-video-title="9Eyes, Who We Are">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M8 5v14l11-7z"/></svg>
         Who we are
       </button>
     </div>
-  </div>
-</section>
 
-<section id="pillars">
-  <div class="wrap">
-    <h2 class="section-title">Five pillars, one platform</h2>
-    <p class="section-sub">Every automated identity, owned, defined, watched, and provable, in a single place.</p>
-    <div class="grid">
-      <div class="pillar">
-        <div class="icon">1</div>
-        <h3>Own</h3>
-        <p>Every agent is bound to a human owner. Offboard the human, and every agent they created goes with them, instantly.</p>
+    <!-- Interface View: Interactive Node Hierarchies -->
+    <div class="product-preview">
+      <div class="window-header">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        <div class="window-title">NineEyes // Identity Hierarchy Graph</div>
+        <div style="width: 38px;"></div>
       </div>
-      <div class="pillar">
-        <div class="icon">2</div>
-        <h3>Define</h3>
-        <p>Describe access policy in plain English. 9Eyes turns it into a structured, enforced rule set, no config files required.</p>
-      </div>
-      <div class="pillar">
-        <div class="icon">3</div>
-        <h3>Watch</h3>
-        <p>Behavioural baselines flag anomalies, scope escalation, odd hours, new locations, before they become incidents.</p>
-      </div>
-      <div class="pillar">
-        <div class="icon">4</div>
-        <h3>Respond</h3>
-        <p>Quarantine or revoke any agent, or every agent tied to a person, in a single action, no manual cleanup across systems.</p>
-      </div>
-      <div class="pillar">
-        <div class="icon">5</div>
-        <h3>Prove</h3>
-        <p>Every credential, policy change, and alert is logged against the human who authorised it, ready for audit.</p>
+
+      <div class="mock-grid">
+        <div class="mock-tree-view">
+          <div class="mock-node human">◈ SecOps Administrator (Identity Owner)</div>
+          <div class="tree-line"></div>
+          <div class="mock-node master">⬡ GitHub Master Key (PK_H)</div>
+          <div class="tree-line"></div>
+          <div class="mock-node agent">⬢ Autonomous Copilot Token (NHI)</div>
+        </div>
+
+        <div class="mock-panel">
+          <div class="alert-banner">
+            ⚠️ Anomalous Rate Burst Detected
+          </div>
+          <div class="mock-row"><span>Token Binding</span><span>Active (mTLS)</span></div>
+          <div class="mock-row"><span>Public Key</span><span>pk_nhi_a1b2c3d4…</span></div>
+          <div class="mock-row"><span>Policy Spec</span><span>CI Bot Baseline</span></div>
+          <div class="mock-row"><span>TTL Enforcement</span><span>14 Days (Mandatory)</span></div>
+
+          <button class="btn btn-primary" style="background: var(--danger); color: #fff; padding: 10px; justify-content: center; font-size: 12px; box-shadow: none; margin-top: auto;">
+            ✕ Instantly Revoke Agent Access
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="band" id="how">
-  <div class="wrap grid-2">
-    <div>
-      <h2>Built for a world where agents outnumber employees</h2>
-      <ul>
-        <li>Works across any identity provider, cloud, or platform, no vendor lock-in.</li>
-        <li>Onboard an agent in minutes through a guided setup, no scripting required.</li>
-        <li>One dashboard for every bot, service account, API client, and AI agent in your org.</li>
-        <li>Instant, org-wide revocation the moment a person or agent needs to be cut off.</li>
-      </ul>
+  <section class="features" id="features">
+    <div class="feature-card">
+      <div class="feature-icon">01 /</div>
+      <h3>Cryptographic Binding</h3>
+      <p>Explicitly tie every machine, automated pipeline, or agentic token back to a verifiable human workspace profile.</p>
     </div>
-    <div class="pillar">
-      <h3 style="margin-bottom:16px;">Why teams choose 9Eyes</h3>
-      <p style="margin-bottom:12px;">Most tools track agents after the fact. 9Eyes ties ownership in from the start, so every action an agent takes traces back to a real person, automatically.</p>
-      <p>That means faster audits, faster incident response, and no more guessing who left an orphaned bot running in production.</p>
+    <div class="feature-card">
+      <div class="feature-icon">02 /</div>
+      <h3>Dynamic Policy Specs</h3>
+      <p>Deploy AI-native validation engines with built-in scope mitigation parameters generated and kept secure by design.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">03 /</div>
+      <h3>One-Click Revocation</h3>
+      <p>Isolate misbehaving tokens instantly without fracturing core organizational directories, cloud boundaries, or dependencies.</p>
+    </div>
+  </section>
+
+  <div class="video-modal" id="videoModal">
+    <div class="video-modal-inner">
+      <div class="video-modal-head">
+        <div class="video-modal-title" id="videoModalTitle">9Eyes, UI Demo</div>
+        <button class="video-modal-close" id="closeVideoBtn" type="button" aria-label="Close">&times;</button>
+      </div>
+      <video id="demoVideo" controls preload="none"></video>
     </div>
   </div>
-</section>
 
-<section class="final-cta" id="contact">
-  <div class="wrap">
-    <h2>See 9Eyes on your own agents</h2>
-    <p>Bring your identity provider. We'll show you ownership, policy, and revocation working end to end.</p>
-    <a class="btn btn-primary" href="mailto:snir.karat@igentify.com">Get in touch</a>
-  </div>
-</section>
+  <script>
+    const modal = document.getElementById('videoModal');
+    const video = document.getElementById('demoVideo');
+    const modalTitle = document.getElementById('videoModalTitle');
+    const closeBtn = document.getElementById('closeVideoBtn');
+    const openBtns = document.querySelectorAll('[data-video-src]');
 
-<footer>
-  <div class="wrap">
-    &copy; 2026 9Eyes. Nothing moves unseen.
-  </div>
-</footer>
-
-<div class="video-modal" id="videoModal">
-  <div class="video-modal-inner">
-    <div class="video-modal-head">
-      <div class="video-modal-title" id="videoModalTitle">9Eyes — UI Demo</div>
-      <button class="video-modal-close" id="closeVideoBtn" type="button" aria-label="Close">&times;</button>
-    </div>
-    <video id="demoVideo" controls preload="none"></video>
-  </div>
-</div>
-
-<script>
-  const modal = document.getElementById('videoModal');
-  const video = document.getElementById('demoVideo');
-  const modalTitle = document.getElementById('videoModalTitle');
-  const closeBtn = document.getElementById('closeVideoBtn');
-  const openBtns = document.querySelectorAll('[data-video-src]');
-
-  function openModal(src, title){
-    modalTitle.textContent = title;
-    video.src = src;
-    modal.classList.add('open');
-    video.play().catch(()=>{});
-  }
-  function closeModal(){
-    modal.classList.remove('open');
-    video.pause();
-    video.removeAttribute('src');
-    video.load();
-  }
-  openBtns.forEach(btn => {
-    btn.addEventListener('click', () => openModal(btn.dataset.videoSrc, btn.dataset.videoTitle));
-  });
-  closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
-  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
-</script>
+    function openModal(src, title) {
+      modalTitle.textContent = title;
+      video.src = src;
+      modal.classList.add('open');
+      video.play().catch(() => {});
+    }
+    function closeModal() {
+      modal.classList.remove('open');
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+    }
+    openBtns.forEach(btn => {
+      btn.addEventListener('click', () => openModal(btn.dataset.videoSrc, btn.dataset.videoTitle));
+    });
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  </script>
 
 </body>
 </html>
