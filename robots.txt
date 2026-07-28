@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /demo/
 
 Sitemap: https://www.9eyes.io/sitemap.xml
